@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<script type="text/javascript" src="../../dist/nersah.js"></script>
+<script type="text/javascript">
+
+nersah.setDefault(
+	{
+		urlBase: 'https://api.thinghub.io',
+		urlPrefix: '/v0',
+		urlSuffix: '',
+
+		timeout: 3000,
+
+
+		dataType: 'json'
+	},
+	{
+	200: function(http){
+		console.log(' custom http handler : 200 ');
+	},
+	400: function(http){
+		console.log(' custom http handler : 400 ');
+	},
+	500: function(http){
+		console.log(' custom http handler : 500 ');
+	}
+});
+
+
+var token;
+
+
+nersah
+.setTag('version')
+.get('/')
+.then(function(response){
+	console.log('app version' , response);
+});
+
+
+// nersah
+// .setTag('login')
+// .post({
+// 	url: '/token',
+// 	data: JSON.stringify({
+// 		mail: 'shayanypn@gmail.com',
+// 		password: '123123'
+// 	})
+// })
+// .then(function(response){
+// 	console.log('login:' , response);
+// 	token = response;
+// 	getProjects();
+// });
+// function getProjects(){
+// 	nersah
+// 	.get({
+// 		url: '/user/'+token.user+'/organization-projects',
+// 		headers:{
+// 			'content-type': 'application/json',
+// 			'Authorization': token.uuid
+// 		}
+// 	})
+// 	.then(function(response){
+// 		console.log('projects::' , response);
+// 	});
+// }
+
+
+
+
+nersah
+.tag(['version','login']) 
+.then(function(promises){
+	console.info( 'tags finish with success', promises);
+},function(promises){
+	console.error( 'tags finish with failuare', promises);
+})
+
+
+
+// nersah.get('http://google.com', false)
+// .handler(function(httpReturn){
+// 	console.log('call api handler' , httpReturn);
+// })
+// .then(function (firstResult) {
+// 	// wont get in here
+// 	console.log("first result:", firstResult);
+// 	return firstResult;
+// }, function(error) {
+// 	console.log("got an error:", error);
+// })
+// ;
+
+
+
+// nersah
+// .setTag('shayan')
+// .get({
+// 	// url: 'http://192.168.1.104/test/api.php?code=200',
+// 	url: 'http://www.mattgreer.org/articles/promises-in-wicked-detail/',
+// 	// contentType: 'application/json',
+// 	// dataType: 'json',
+// 	data: JSON.stringify({
+// 		key: 'value'
+// 	}),
+// })
+// .handler(function(httpReturn){
+// 	console.log('call api handler' , httpReturn);
+// })
+// .then(function (firstResult) {
+// 	// wont get in here
+// 	console.log("first result:", firstResult);
+// 	return firstResult;
+// }, function(error) {
+// 	console.log("got an error:", error);
+// })
+// // .then(function(value){
+// // 	console.log(value);
+// // })
+// .handler(function(httpReturn){
+// 	console.log('call api handler 2' , httpReturn);
+// })
+// ;
+
+// nersah
+// .setTag('shayan')
+// .post({
+// 	url: 'http://192.168.1.104/test/api.php?code=201',
+// 	contentType: 'application/json',
+// 	dataType: 'json',
+// 	data: JSON.stringify({
+// 		key: 'value'
+// 	}),
+// })
+
+// nersah
+// .tag('shayan') 
+// .then(function(value){
+// 	console.info( 'tags finish with success', value);
+// },function(value){
+// 	console.error( 'tags finish with failuare', value);
+// })
+
+// var promise = nersah.get({
+// 	url: 'http://192.168.1.104/test/api.php?code=400',
+// 	type: 'GET',
+// 	contentType: 'application/json',
+// 	dataType: 'json'
+// })
+// 	.handler({
+// 		200: function(){
+
+// 			console.log('200');
+// 		}
+// 	})
+// .loading(function(){
+// 	console.log('loading' );
+// })
+// .loading(function(){
+// 	console.log('loading1' );
+// })
+// .done(function( response , http ) {
+// 	console.log('success response' , response , http );
+// })
+// .catch(function(http){
+// 	console.log( 'fail' , http)
+// })
+// .loading(function(){
+// 	console.log('loading2' );
+// })
+	</script>
+</head>
+<body>
+
+</body>
+</html>
