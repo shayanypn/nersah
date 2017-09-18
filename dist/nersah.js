@@ -276,10 +276,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  */
 var Promise = function Promise(fn, defaultHandler, _httpResponse) {
 	var state = 'pending',
-	    value,
+	    value = void 0,
 	    deferred = null,
 	    httpResponse = _httpResponse ? _httpResponse : {},
-	    responseHandler;
+	    responseHandler = void 0;
 
 	function resolve(newValue, _httpResponse) {
 
@@ -332,7 +332,7 @@ var Promise = function Promise(fn, defaultHandler, _httpResponse) {
 			}, 1);
 		}
 
-		var handlerCallback;
+		var handlerCallback = void 0;
 
 		if (state === 'resolved') {
 			handlerCallback = handler.onResolved;
@@ -350,7 +350,7 @@ var Promise = function Promise(fn, defaultHandler, _httpResponse) {
 			return;
 		}
 
-		var ret;
+		var ret = void 0;
 		try {
 			ret = handlerCallback(value, httpResponse);
 			handler.resolve(ret, httpResponse);
@@ -519,13 +519,13 @@ function NERSAH() {
 			}
 
 			_promises.forEach(function (_promise_obj, index) {
-				_promise_obj.promise.handler(function (httpResponse) {
-					if (httpResponse.isSuccess()) {
+				_promise_obj.xhr.onload = function () {
+					if (_promise_obj.xhr.status >= 200 && _promise_obj.xhr.status < 300) {
 						didRequestSuccess(index);
 					} else {
 						didRequestFail(index);
-					}
-				});
+					};
+				};
 			});
 		});
 	},
@@ -813,20 +813,13 @@ module.exports = function callHandler(httpReturn, defaultHandler, customHandler)
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
+/* global ActiveXObject */
 
-
-var _utilities = __webpack_require__(0);
-
-var _utilities2 = _interopRequireDefault(_utilities);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = function xmlHttpRequest(httpOption) {
 
 		if (httpOption.isValid()) {
 				var xmlHttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP');
-
-				// httpOption.data = httpOption.data || false;
 
 				xmlHttp.open(httpOption.method, httpOption.getUrl(), true);
 
@@ -937,6 +930,7 @@ module.exports = function httpHandler(httpRequest, httpOption, defaultHandler, p
 		if (httpRequest.readyState === XMLHttpRequest.DONE) {
 
 			promise.onUpdater(httpResponse, true);
+
 			setTimeout(function () {
 				if (httpResponse.isSuccess()) {
 					promise.onResolve(httpResponse.response, httpResponse);

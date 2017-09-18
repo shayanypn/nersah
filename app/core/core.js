@@ -66,14 +66,13 @@ export default function NERSAH() {
 			}
 
 			_promises.forEach(function(_promise_obj, index) {
-				_promise_obj.promise
-				.handler(function(httpResponse){
-					if ( httpResponse.isSuccess() ) {
+				_promise_obj.xhr.onload = function(){
+					if ( _promise_obj.xhr.status >= 200 && _promise_obj.xhr.status < 300 ){
 						didRequestSuccess(index);
 					}else{
 						didRequestFail(index);
-					}
-				});
+					};
+				}
 			});
 		});
 	},

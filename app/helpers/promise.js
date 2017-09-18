@@ -8,14 +8,14 @@ import callbackHandler from './../helpers/callbackHandler';
  * @param {Object}   defaultHandler [description]
  * @param {Object}   _httpResponse    [description]
  */
-let Promise = function (fn , defaultHandler, _httpResponse) {
-	var state = 'pending',
+let Promise = function (fn, defaultHandler, _httpResponse) {
+	let state = 'pending',
 	value,
 	deferred = null,
 	httpResponse = _httpResponse ? _httpResponse : {},
 	responseHandler;
 
-	function resolve (newValue, _httpResponse) {
+	function resolve(newValue, _httpResponse) {
 
 		if (_httpResponse) {
 			httpResponse = _httpResponse;
@@ -39,14 +39,13 @@ let Promise = function (fn , defaultHandler, _httpResponse) {
 		},1);
 	}
 
-	function reject (reason , _httpResponse) {
+	function reject(reason, _httpResponse) {
 		state = 'rejected';
 		value = reason;
 
 		if (_httpResponse) {
 			httpResponse = _httpResponse;
 		}
-
 
 		setTimeout(function() {
 			if (deferred) {
@@ -55,7 +54,7 @@ let Promise = function (fn , defaultHandler, _httpResponse) {
 		},1);
 	}
 
-	function handle (handler) {
+	function handle(handler) {
 		if (state === 'pending') {
 			deferred = handler;
 			return;
@@ -67,8 +66,7 @@ let Promise = function (fn , defaultHandler, _httpResponse) {
 			}, 1);
 		}
 
-
-		var handlerCallback;
+		let handlerCallback;
 
 		if (state === 'resolved') {
 			handlerCallback = handler.onResolved;
@@ -86,7 +84,7 @@ let Promise = function (fn , defaultHandler, _httpResponse) {
 			return;
 		}
 
-		var ret;
+		let ret;
 		try {
 			ret = handlerCallback(value, httpResponse);
 			handler.resolve(ret, httpResponse);
@@ -95,7 +93,7 @@ let Promise = function (fn , defaultHandler, _httpResponse) {
 		}
 	}
 
-	function updater (_httpResponse , _callHandler) {
+	function updater(_httpResponse, _callHandler) {
 
 		if (_httpResponse) {
 			httpResponse = _httpResponse;
@@ -116,11 +114,11 @@ let Promise = function (fn , defaultHandler, _httpResponse) {
 				resolve: resolve,
 				reject: reject
 			});
-		}, defaultHandler , httpResponse);
+		}, defaultHandler, httpResponse);
 	};
 
-	this.handler = function(onHandler , onResolved, onRejected) {
-		
+	this.handler = function(onHandler, onResolved, onRejected) {
+
 		responseHandler = onHandler;
 
 		return new Promise(function (resolve, reject) {
@@ -130,8 +128,8 @@ let Promise = function (fn , defaultHandler, _httpResponse) {
 				resolve: resolve,
 				reject: reject
 			});
-		}, defaultHandler , httpResponse);
-	}
+		}, defaultHandler, httpResponse);
+	};
 
 	fn(resolve, reject, updater);
 };
