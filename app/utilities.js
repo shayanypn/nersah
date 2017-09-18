@@ -1,15 +1,13 @@
 'use stric';
 
-
-
 /**
  * Determine if a varaieble is an Array
  *
  * @param {Object} obj The value to test
  * @returns {boolean} True if obj is an Array, otherwise false
  */
-function isArray( obj ){
-	return ( obj instanceof Array );
+function isArray(obj) {
+	return (obj instanceof Array);
 }
 
 /**
@@ -32,7 +30,6 @@ function isNumber(val) {
 	return typeof val === 'number';
 }
 
-
 /**
  * Determine if a value exist in an array or not
  *
@@ -41,9 +38,8 @@ function isNumber(val) {
  * @returns {boolean} True if value is a Number, otherwise false
  */
 function includeArray(arr,str) {
-  return (arr.indexOf(str) != -1);
+  return (arr.indexOf(str) !== -1);
 }
-
 
 /**
  * Create a clone of an object
@@ -55,8 +51,8 @@ function clone(obj) {
     if (obj === null || typeof(obj) !== 'object' || 'isActiveClone' in obj) {
         return obj;
     }
-    var temp = (obj instanceof Date || obj instanceof XMLHttpRequest) ? ( new obj.constructor() ) : obj.constructor();    
-    for (var key in obj) {
+    let temp = (obj instanceof Date || obj instanceof XMLHttpRequest) ? (new obj.constructor()) : obj.constructor();    
+    for (let key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
             obj['isActiveClone'] = null;
             temp[key] = clone(obj[key]);
@@ -86,10 +82,8 @@ function isStandardBrowserEnv() {
   return (
     typeof window !== 'undefined' &&
     typeof document !== 'undefined'
-  );
+ );
 }
-
-
 
 /**
  * Convert object|array to query string
@@ -114,35 +108,31 @@ function toQueryString(data) {
   return query.replace(/&$/, '').replace(/%20/g, '+');
 }
 
-
-
-
 /**
  * Determine if a value is a Number
  *
  * @param {Object|Array} val The value to test
  * @returns {String} True if value is a Number, otherwise false
  */
-function extendCallback(obj , options){
-  Object.keys(options).forEach( code => {
-    if ( obj.hasOwnProperty( code ) ){
-      if ( typeof obj[ code ] === 'object' &&  typeof options[ code ] === 'function' ) {
+function extendCallback(obj , options) {
+  Object.keys(options).forEach(code => {
+    if (obj.hasOwnProperty(code)) {
+      if (typeof obj[ code ] === 'object' &&  typeof options[ code ] === 'function') {
         obj[ code ]['callback'] = options[ code ];
-      }else if( typeof obj[ code ] === 'object' &&  typeof options[ code ] === 'object' ){
-        if ( typeof options[ code ].status === 'string' ) {
+      }else if(typeof obj[ code ] === 'object' &&  typeof options[ code ] === 'object') {
+        if (typeof options[ code ].status === 'string') {
           obj[ code ]['status'] = options[ code ].status;
         }
-        if ( typeof options[ code ].callback ) {
+        if (typeof options[ code ].callback) {
           obj[ code ]['callback'] = options[ code ].callback;
         }
       }
-    }else if( code === 'function' ){
+    }else if(code === 'function') {
       obj[ 'default' ]['callback'] = options[ code ];
     }
   });
   return obj;
 };
-
 
 /**
  * create a filter array function
@@ -150,16 +140,16 @@ function extendCallback(obj , options){
  * @param  {Function}   Filter function 
  * @return {Array}     Filtered Array
  */
-function filter(ary, fun ){
+function filter(ary, fun) {
   var len = ary.length >>> 0;
-  if (typeof fun != "function")
+  var res = [];
+  if (typeof fun !== "function")
   throw new TypeError();
 
-  var res = [];
-  var thisp = fun;
-  for (var i = 0; i < len; i++) {
+  let thisp = fun;
+  for (let i = 0; i < len; i++) {
     if (i in ary) {
-      var val = ary[i]; // in case fun mutates ary
+      let val = ary[i]; // in case fun mutates ary
       if (fun.call(thisp, val, i, ary))
       res.push(val);
     }
@@ -178,4 +168,3 @@ module.exports = {
   toQueryString: toQueryString,
 	isStandardBrowserEnv: isStandardBrowserEnv
 };
-

@@ -10,7 +10,7 @@ module.exports = function xmlHttpRequest(httpOption) {
 
 		httpOption
 		.getHeaders()
-		.forEach( function(header) {
+		.forEach(function (header) {
 			xmlHttp.setRequestHeader(header.key, header.value);
 		});
 

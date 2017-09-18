@@ -12,7 +12,20 @@ nersah.setDefault(
 
 		timeout: 3000,
 
-		dataType: 'json'
+		dataType: 'json',
+
+		headers: function(){
+			if ( token ) {
+				return {
+					'Authorization': token.uuid,
+					'content-type': 'application/json'
+				};
+			}else{
+				return {
+					'content-type': 'application/json'
+				};
+			};
+		}
 	},
 	{
 	200: function(http){
@@ -30,12 +43,12 @@ nersah.setDefault(
 var token;
 
 
-nersah
-.setTag('version')
-.get('/')
-.then(function(response){
-	console.log( (new Date()).getTime() ,'app version' , response);
-});
+// nersah
+// .setTag('version')
+// .get('/')
+// .then(function(response){
+// 	console.log( (new Date()).getTime() ,'app version' , response);
+// });
 
 
 nersah
@@ -44,22 +57,22 @@ nersah
 	url: '/token',
 	data: JSON.stringify({
 		mail: 'shayanypn@gmail.com',
-		password: '1231231'
+		password: '123123'
 	})
 })
 .then(function(response){
 	console.log( (new Date()).getTime() ,'login:' , response);
 	token = response;
-	// getProjects();
+	getProjects();
 });
 function getProjects(){
 	nersah
 	.get({
 		url: '/user/'+token.user+'/organization-projects',
-		headers:{
-			'content-type': 'application/json',
-			'Authorization': token.uuid
-		}
+		// headers:{
+		// 	'content-type': 'application/json',
+		// 	'Authorization': token.uuid
+		// }
 	})
 	.then(function(response){
 		console.log('projects::' , response);

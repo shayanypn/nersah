@@ -122,7 +122,7 @@ function isNumber(val) {
  * @returns {boolean} True if value is a Number, otherwise false
  */
 function includeArray(arr, str) {
-  return arr.indexOf(str) != -1;
+  return arr.indexOf(str) !== -1;
 }
 
 /**
@@ -230,9 +230,9 @@ function extendCallback(obj, options) {
  */
 function filter(ary, fun) {
   var len = ary.length >>> 0;
-  if (typeof fun != "function") throw new TypeError();
-
   var res = [];
+  if (typeof fun !== "function") throw new TypeError();
+
   var thisp = fun;
   for (var i = 0; i < len; i++) {
     if (i in ary) {
@@ -351,6 +351,7 @@ var Promise = function Promise(fn, defaultHandler, _httpResponse) {
 		}
 
 		var ret = void 0;
+
 		try {
 			ret = handlerCallback(value, httpResponse);
 			handler.resolve(ret, httpResponse);
@@ -864,9 +865,9 @@ var statusText = function statusText(httpReturn, _handler) {
 
 	var text = '';
 
-	if (parseInt(httpReturn.statusCode) === httpReturn.statusCode && httpReturn.statusCode !== 0) {
+	if (parseInt(httpReturn.statusCode, 10) === httpReturn.statusCode && httpReturn.statusCode !== 0) {
 		text = _handler[httpReturn.statusCode].statusCode;
-	} else if (parseInt(httpReturn.statusCode) === httpReturn.statusCode && httpReturn.statusCode === 0) {
+	} else if (parseInt(httpReturn.statusCode, 10) === httpReturn.statusCode && httpReturn.statusCode === 0) {
 		if (httpReturn.readyState === 1) {
 			text = 'loading';
 		}
@@ -1062,7 +1063,7 @@ var httpOptionBase = function httpOptionBase() {
 
 	// // `paramsSerializer` is an optional function in charge of serializing `params`
 	// // (e.g. https://www.npmjs.com/package/qs, http://api.jquery.com/jquery.param/)
-	// paramsSerializer: function(params) {
+	// paramsSerializer: function (params) {
 	// return Qs.stringify(params, {arrayFormat: 'brackets'})
 	// },
 
@@ -1171,19 +1172,39 @@ var httpOption = function httpOption() {
 	// `baseURL` will be prepended to `url` unless `url` is absolute.
 	// It can be convenient to set `baseURL` for an instance of axios to pass relative URLs
 	// to methods of that instance.
+
+	/**
+  * the base url
+  * @type {String}
+  */
 	this.urlBase = '';
 
+	/**
+  * prefix of each url
+  * @type {String}
+  */
 	this.urlPrefix = '';
 
+	/**
+  * suffix of each url
+  * @type {String}
+  */
 	this.urlSuffix = '';
 
 	this.async = true;
 
 	this.dataType = 'html';
 
+	/**
+  * identifier of each http request
+  * @type {String}
+  */
 	this.tag = null;
 
-	// `headers` are custom headers to be sent
+	/**
+  * `headers` are custom headers to be sent
+  * @type {Object|Function}
+  */
 	this.headers = {};
 };
 
@@ -1199,6 +1220,13 @@ httpOption.prototype.setDefault = function () {
 				_this[props] = options[props];
 			}
 		});
+
+		/**
+   * get headers
+   */
+		if (_typeof(options.headers) === 'object' || typeof options.headers === 'function') {
+			this.headers = options.headers;
+		};
 	} else {}
 };
 
@@ -1222,6 +1250,9 @@ httpOption.prototype.extend = function () {
 		}
 	});
 
+	/**
+  * set header
+  */
 	if (_typeof(options.headers) === 'object' && Object.keys(options.headers).length > 0) {
 		Object.keys(options.headers).forEach(function (name) {
 			_this.headers[name] = options.headers[name];
@@ -1242,14 +1273,27 @@ httpOption.prototype.getData = function () {
 		return this.data;
 	}
 };
+
 httpOption.prototype.getHeaders = function () {
-	var _this = this;
-	return Object.keys(this.headers).map(function (key) {
-		return {
-			key: key,
-			value: _this.headers[key]
-		};
-	});
+	var headers = void 0;
+
+	if (typeof this.headers === 'function') {
+		headers = this.headers();
+	} else if (_typeof(this.headers) === 'object') {
+		headers = this.headers;
+	}
+
+	if ((typeof headers === 'undefined' ? 'undefined' : _typeof(headers)) === 'object') {
+
+		return Object.keys(headers).map(function (key) {
+			return {
+				'key': key,
+				'value': headers[key]
+			};
+		});
+	} else {
+		return [];
+	};
 };
 module.exports = httpOption;
 

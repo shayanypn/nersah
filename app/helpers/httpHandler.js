@@ -12,9 +12,9 @@ let statusText = function (httpReturn, _handler) {
 
 	let text = '';
 
-	if (parseInt(httpReturn.statusCode) === httpReturn.statusCode && httpReturn.statusCode !== 0) {
+	if (parseInt(httpReturn.statusCode, 10) === httpReturn.statusCode && httpReturn.statusCode !== 0) {
 		text = _handler[ httpReturn.statusCode ].statusCode;
-	} else if (parseInt(httpReturn.statusCode) === httpReturn.statusCode && httpReturn.statusCode === 0) {
+	} else if (parseInt(httpReturn.statusCode, 10) === httpReturn.statusCode && httpReturn.statusCode === 0) {
 		if (httpReturn.readyState === 1) {
 			text = 'loading';
 		}

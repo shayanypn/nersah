@@ -3,7 +3,7 @@
 /**
  * HTTP Option Object
  */
-let httpOptionBase = function() {
+let httpOptionBase = function () {
 
 	// // `transformRequest` allows changes to the request data before it is sent to the server
 	// // This is only applicable for request methods 'PUT', 'POST', and 'PATCH'
@@ -32,7 +32,7 @@ let httpOptionBase = function() {
 
 	// // `paramsSerializer` is an optional function in charge of serializing `params`
 	// // (e.g. https://www.npmjs.com/package/qs, http://api.jquery.com/jquery.param/)
-	// paramsSerializer: function(params) {
+	// paramsSerializer: function (params) {
 	// return Qs.stringify(params, {arrayFormat: 'brackets'})
 	// },
 
@@ -130,7 +130,7 @@ let httpOptionBase = function() {
 	// // })
 };
 
-let httpOption = function() {
+let httpOption = function () {
 
 	// `url` is the server URL that will be used for the request
 	this.url = '';
@@ -141,20 +141,39 @@ let httpOption = function() {
 	// `baseURL` will be prepended to `url` unless `url` is absolute.
 	// It can be convenient to set `baseURL` for an instance of axios to pass relative URLs
 	// to methods of that instance.
+
+	/**
+	 * the base url
+	 * @type {String}
+	 */
 	this.urlBase = '';
 
+	/**
+	 * prefix of each url
+	 * @type {String}
+	 */
 	this.urlPrefix = '';
 
+	/**
+	 * suffix of each url
+	 * @type {String}
+	 */
 	this.urlSuffix = '';
-
 
 	this.async = true;
 
 	this.dataType = 'html';
 
+	/**
+	 * identifier of each http request
+	 * @type {String}
+	 */
 	this.tag = null;
 
-	// `headers` are custom headers to be sent
+	/**
+	 * `headers` are custom headers to be sent
+	 * @type {Object|Function}
+	 */
 	this.headers = {};
 
 };
@@ -166,11 +185,19 @@ httpOption.prototype.setDefault = function () {
 		options = arguments['0'],
 		stringProps = ['urlBase', 'urlPrefix', 'urlSuffix', 'method', 'dataType', 'tag'];
 
-		stringProps.forEach(function(props) {
-			if ( typeof options[props] === 'string' ) {
+		stringProps.forEach(function (props) {
+			if (typeof options[props] === 'string') {
 				_this[props] = options[props];
 			}
 		});
+
+		/**
+		 * get headers
+		 */
+		if (typeof options.headers === 'object' || typeof options.headers === 'function') {
+			this.headers = options.headers;
+		};
+
 	} else {
 
 	}
@@ -191,16 +218,19 @@ httpOption.prototype.extend = function () {
 	}
 
 	['url', 'method', 'dataType', 'data', 'tag']
-	.forEach(function(prop) {
-		if (typeof options[prop] !== 'undefined' ) {
+	.forEach(function (prop) {
+		if (typeof options[prop] !== 'undefined') {
 			_this[prop] = options[prop];
 		}
 	});
 
+	/**
+	 * set header
+	 */
 	if (typeof options.headers === 'object' && Object.keys(options.headers).length > 0) {
 		Object.keys(options.headers)
-		.forEach(function(name){
-			_this.headers[name] = options.headers[name]
+		.forEach(function (name) {
+			_this.headers[name] = options.headers[name];
 		});
 	}
 };
@@ -218,13 +248,28 @@ httpOption.prototype.getData = function () {
 		return this.data;
 	}
 };
+
 httpOption.prototype.getHeaders = function () {
-	let _this = this;
-	return Object.keys(this.headers).map(function(key){
-		return {
-			key: key,
-			value: _this.headers[key]
-		};
-	});
+	let headers;
+
+	if (typeof this.headers === 'function') {
+		headers = this.headers();
+	} else if (typeof this.headers === 'object') {
+		headers = this.headers;
+	}
+
+	if (typeof headers === 'object') {
+
+		return Object.keys(headers)
+			.map(function (key) {
+				return {
+					'key': key,
+					'value': headers[key]
+				};
+			});
+	} else {
+		return [];
+	};
+
 };
 module.exports = httpOption;

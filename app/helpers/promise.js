@@ -21,7 +21,7 @@ let Promise = function (fn, defaultHandler, _httpResponse) {
 			httpResponse = _httpResponse;
 		}
 
-		setTimeout(function() {
+		setTimeout(function () {
 			try {
 				if (newValue && typeof newValue.then === 'function') {
 					newValue.then(resolve, reject);
@@ -36,7 +36,7 @@ let Promise = function (fn, defaultHandler, _httpResponse) {
 			} catch (e) {
 				reject(e, httpResponse);
 			}
-		},1);
+		}, 1);
 	}
 
 	function reject(reason, _httpResponse) {
@@ -47,11 +47,11 @@ let Promise = function (fn, defaultHandler, _httpResponse) {
 			httpResponse = _httpResponse;
 		}
 
-		setTimeout(function() {
+		setTimeout(function () {
 			if (deferred) {
 				handle(deferred);
 			}
-		},1);
+		}, 1);
 	}
 
 	function handle(handler) {
@@ -61,7 +61,7 @@ let Promise = function (fn, defaultHandler, _httpResponse) {
 		}
 
 		if (responseHandler) {
-			setTimeout(function() {
+			setTimeout(function () {
 				callbackHandler(httpResponse, defaultHandler, responseHandler);
 			}, 1);
 		}
@@ -85,6 +85,7 @@ let Promise = function (fn, defaultHandler, _httpResponse) {
 		}
 
 		let ret;
+
 		try {
 			ret = handlerCallback(value, httpResponse);
 			handler.resolve(ret, httpResponse);
@@ -100,7 +101,7 @@ let Promise = function (fn, defaultHandler, _httpResponse) {
 		}
 
 		if (_callHandler) {
-			setTimeout(function() {
+			setTimeout(function () {
 				callbackHandler(httpResponse, defaultHandler);
 			}, 1);
 		}
@@ -117,7 +118,7 @@ let Promise = function (fn, defaultHandler, _httpResponse) {
 		}, defaultHandler, httpResponse);
 	};
 
-	this.handler = function(onHandler, onResolved, onRejected) {
+	this.handler = function (onHandler, onResolved, onRejected) {
 
 		responseHandler = onHandler;
 

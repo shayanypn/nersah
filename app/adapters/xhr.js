@@ -15,7 +15,7 @@ module.exports = function xhrAdapter(config, defaultHandler) {
 
 	return {
 		'xhr': xmlHttp,
-		'promise': new promise(function(resolve, reject, updater) {
+		'promise': new promise(function (resolve, reject, updater) {
 			/**
 			 * [onResolve description]
 			 * @type {[type]}
