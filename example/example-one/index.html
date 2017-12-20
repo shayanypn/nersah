@@ -2,98 +2,44 @@
 <html>
 <head>
 <title>Example One</title>
-<script type="text/javascript" src="../../dist/nersah.js"></script>
-<script type="text/javascript">
-nersah.setDefault(
-	{
-		urlBase: 'https://api.thinghub.io',
-		urlPrefix: '/v0',
-		urlSuffix: '',
+<link rel="stylesheet" href="bootstrap.min.css" crossorigin="anonymous" />
 
-		timeout: 3000,
-
-		dataType: 'json',
-
-		headers: function(){
-			if ( token ) {
-				return {
-					'Authorization': token.uuid,
-					'content-type': 'application/json'
-				};
-			}else{
-				return {
-					'content-type': 'application/json'
-				};
-			};
-		}
-	},
-	{
-	200: function(http){
-		console.log(' custom http handler : 200 ');
-	},
-	400: function(http){
-		console.log(' custom http handler : 400 ');
-	},
-	500: function(http){
-		console.log(' custom http handler : 500 ');
-	}
-});
-
-
-var token;
-
-
-// nersah
-// .setTag('version')
-// .get('/')
-// .then(function(response){
-// 	console.log( (new Date()).getTime() ,'app version' , response);
-// });
-
-
-nersah
-.setTag('login')
-.post({
-	url: '/token',
-	data: JSON.stringify({
-		mail: 'shayanypn@gmail.com',
-		password: '123123'
-	})
-})
-.then(function(response){
-	console.log( (new Date()).getTime() ,'login:' , response);
-	token = response;
-	getProjects();
-});
-function getProjects(){
-	nersah
-	.get({
-		url: '/user/'+token.user+'/organization-projects',
-		// headers:{
-		// 	'content-type': 'application/json',
-		// 	'Authorization': token.uuid
-		// }
-	})
-	.then(function(response){
-		console.log('projects::' , response);
-	});
-}
-
-
-
-
-nersah
-.tag(['version','login']) 
-.then(function(promises){
-	console.info( (new Date()).getTime() , 'tags finish with success', promises);
-},function(promises){
-	console.error( (new Date()).getTime() , 'tags finish with failuare', promises);
-})
-
-
-</script>
 </head>
 <body>
 
+<div class="container">
+	<div class="row">
+		<div class="col-sm-12">
+			<div class="jumbotron">
+				<h1 class="display-3">Nersah!</h1>
+				<p class="lead">This is a simple hero unit, a simple jumbotron-style component for calling extra attention to featured content or information.</p>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="container">
+	<div class="row">
+		<div class="col-md-6">
+			<div class="card">
+				<div class="card-header">Simple Ajax</div>
+				<div class="card-body" id="simple-ajax"></div>
+			</div>
+			<div class="card">
+				<div class="card-header">Login</div>
+				<div class="card-body" id="login-ajax"></div>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="card">
+				<div class="card-header">Log</div>
+				<div class="card-body" id="log"></div>
+			</div>
+		</div>
+		<div class="col-sm-12"><hr></div>
+
+	</div>
+</div>
+<script type="text/javascript" src="../../dist/nersah.js"></script>
+<script type="text/javascript" src="app.js"></script>
 </body>
 </html>

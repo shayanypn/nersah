@@ -2,18 +2,15 @@
 
 import httpStatusCode from './../helpers/httpStatusCode';
 import utils from './../utilities';
-import xhr_adapter from './../adapters/xhr';
-import httpOption from './../core/httpOption';
-import promise from './../helpers/promise';
-
-
-
+import xhrAdapter from './../adapters/xhr';
+import HttpOption from './../core/httpOption';
+import Promise from './../helpers/promise';
 
 export default function NERSAH() {
 	let defaultHandler = httpStatusCode,
 	promises = [],
 	defaultConfig,
-	nersah_tagname,
+	nersahTagName,
 	/**
 	 * [buildHttpOption description]
 	 * @param  {[type]} method      [description]
@@ -21,58 +18,58 @@ export default function NERSAH() {
 	 * @param  {[type]} use_default [description]
 	 * @return {[type]}             [description]
 	 */
-	buildHttpOption = function(method, config, use_default){
-		let option = new httpOption();
+	buildHttpOption = function (method, config, useDefault) {
+		let option = new HttpOption();
 
-		if ( nersah_tagname ) {
-			defaultConfig['tag'] = nersah_tagname;
+		if (nersahTagName) {
+			defaultConfig['tag'] = nersahTagName;
 		}
 
-		if ( use_default !== false ) {
-			option.setDefault( defaultConfig );
+		if (useDefault !== false) {
+			option.setDefault(defaultConfig);
 		}
 
 		option.method = method;
-		option.extend( config );
+		option.extend(config);
 
 		return option;
 	},
 	/**
 	 * Multi Promise Handler
-	 * @param  {Promise-Array} _promises 
+	 * @param  {Promise-Array} _promises
 	 * @return {Promise}       [description]
 	 */
-	handleMultiPromise = function (_promises){
-		return new promise(function (resolve, reject, handler) {
-			
+	handleMultiPromise = function (_promises) {
+		return new Promise(function (resolve, reject, handler) {
+
 			let successItem = [],
 			failItem = [];
 
-			function didRequestSuccess(item){
+			function didRequestSuccess(item) {
 				if (successItem.indexOf(item) === -1) {
 					successItem.push(item);
 					if (successItem.length === _promises.length) {
-						resolve(_promises.map(function(item){ return item.promise; }));
+						resolve(_promises.map(function (item) { return item.promise; }));
 					}
 				}
 			}
-			function didRequestFail(item){
+			function didRequestFail(item) {
 				if (failItem.indexOf(item) === -1) {
 					failItem.push(item);
 					if (failItem.length !== 0 && (failItem.length + successItem.length) === _promises.length) {
-						reject(_promises.map(function(item){ return item.promise; }));
+						reject(_promises.map(function (item) { return item.promise; }));
 					}
 				}
 			}
 
-			_promises.forEach(function(_promise_obj, index) {
-				_promise_obj.xhr.onload = function(){
-					if ( _promise_obj.xhr.status >= 200 && _promise_obj.xhr.status < 300 ){
+			_promises.forEach(function (_promiseObj, index) {
+				_promiseObj.xhr.onload = function () {
+					if (_promiseObj.xhr.status >= 200 && _promiseObj.xhr.status < 300) {
 						didRequestSuccess(index);
-					}else{
+					} else {
 						didRequestFail(index);
-					};
-				}
+					}
+				};
 			});
 		});
 	},
@@ -80,26 +77,32 @@ export default function NERSAH() {
 	 * Promise Collector
 	 * @param  {Promise} _promise [description]
 	 */
-	handlePromise = function(_promise){
+	handlePromise = function (_promise) {
 		promises.push(_promise);
+	},
+
+	handleDefault = function (promise) {
+
+		promise.xhr.onload = function() {
+
+			var statusCode = promise.xhr.status,
+			callbackHandler = defaultHandler[ statusCode ];
+
+			if (callbackHandler && typeof callbackHandler.callback === 'function') {
+				callbackHandler.callback();
+			}
+		};
 	};
-
-
-
-
-
-
-
 
 	return {
 
 		/**
 		 * specify the http request to a tag
 		 * @param  {String} 	tag name
-		 * @return {this}     	
+		 * @return {this}
 		 */
-		setTag: function(tag){
-			nersah_tagname = tag
+		setTag: function (tag) {
+			nersahTagName = tag;
 			return this;
 		},
 
@@ -108,48 +111,36 @@ export default function NERSAH() {
 		 * @param  {String|Array} 	tag name or array of tags
 		 * @return {promise}     	promise of http calls with specify tag name
 		 */
-		tag: function(tag){
+		tag: function (tag) {
+			var _promises;
 
-			if ( !utils.isArray(tag) && !utils.isString(tag)) {return null;}
-
+			if (!utils.isArray(tag) && !utils.isString(tag)) {return null;}
 
 			let tags = utils.isArray(tag) ? tag : tag.split(',');
 
-
-
-			var _promises = utils.filter(promises, function(xhr_obj){
-				return utils.includeArray(tags, xhr_obj.xhr.tag);
+			_promises = utils.filter(promises, function (xhrObj) {
+				return utils.includeArray(tags, xhrObj.xhr.tag);
 			});
 
-			if (_promises.length) {
-				return handleMultiPromise(_promises);
-			}else{
-				return null;
-			}
+			return (_promises.length) ? handleMultiPromise(_promises) : null;
 		},
-	
 		/**
 		 * set default setting for ajax request
-		 * @param  {Object} options	 	HTTP Request Options  
+		 * @param  {Object} options	 	HTTP Request Options
 		 * @param  {Object} hanlders 	HTTP Handler Option
 		 */
-		setDefault: function (options, hanlders){
+		setDefault: function (options, hanlders) {
 
-			if ( options ) {
+			if (options) {
 				defaultConfig = options;
 			}
 
-
-
 			if (hanlders) {
 				if (typeof hanlders === 'object') {
-				
 					defaultHandler = utils.extendCallback(defaultHandler, hanlders);
-				}else if (typeof hanlders === 'function'){
-				
+				} else if (typeof hanlders === 'function') {
 					defaultHandler['default']['callback'] = hanlders;
-				}else{
-				
+				} else {
 					console.error('Wrong ajax callback!');
 				}
 			}
@@ -158,31 +149,34 @@ export default function NERSAH() {
 		/**
 		 * HTTP GET Request
 		 * @param  {Object} 	HTTP Request Options
-		 * @return {Promise} 	
+		 * @return {Promise}
 		 */
-		get: function (config , use_default){
-			let xhr_obj = xhr_adapter(
-				buildHttpOption('GET', config, use_default),
+		get: function (config, useDefault) {
+			let xhrObj = xhrAdapter(
+				buildHttpOption('GET', config, useDefault),
 				defaultHandler
 			);
 
-			handlePromise(xhr_obj);
-			return xhr_obj.promise;
+			handlePromise(xhrObj);
+
+			handleDefault(xhrObj);
+
+			return xhrObj.promise;
 		},
 
 		/**
 		 * HTTP POST Request
 		 * @param  {Object} 	HTTP Request Options
-		 * @return {Promise} 	
+		 * @return {Promise}
 		 */
-		post: function (config, use_default){
-			let xhr_obj = xhr_adapter(
-				buildHttpOption('POST', config, use_default),
+		post: function (config, useDefault) {
+			let xhrObj = xhrAdapter(
+				buildHttpOption('POST', config, useDefault),
 				defaultHandler
 			);
 
-			handlePromise(xhr_obj);
-			return xhr_obj.promise;
+			handlePromise(xhrObj);
+			return xhrObj.promise;
 		}
 
 	};

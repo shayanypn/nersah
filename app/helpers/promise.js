@@ -1,3 +1,4 @@
+/* eslint no-use-before-define: ["error", { "functions": false }]*/
 'use strict';
 
 import callbackHandler from './../helpers/callbackHandler';

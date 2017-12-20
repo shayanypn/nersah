@@ -3,7 +3,7 @@
 /**
  * HTTP Option Object
  */
-let httpOptionBase = function () {
+// let httpOptionBase = function () {
 
 	// // `transformRequest` allows changes to the request data before it is sent to the server
 	// // This is only applicable for request methods 'PUT', 'POST', and 'PATCH'
@@ -128,7 +128,7 @@ let httpOptionBase = function () {
 	// // (see Cancellation section below for details)
 	// // cancelToken: new CancelToken(function (cancel) {
 	// // })
-};
+// };
 
 let httpOption = function () {
 
@@ -136,7 +136,7 @@ let httpOption = function () {
 	this.url = '';
 
 	// `method` is the request method to be used when making the request
-	this.method = 'GET'; //'GET', 'DELETE', 'POST', 'PUT', 'PATCH', 'HEAD'
+	this.method = 'GET'; // 'GET', 'DELETE', 'POST', 'PUT', 'PATCH', 'HEAD'
 
 	// `baseURL` will be prepended to `url` unless `url` is absolute.
 	// It can be convenient to set `baseURL` for an instance of axios to pass relative URLs
@@ -179,7 +179,7 @@ let httpOption = function () {
 };
 
 httpOption.prototype.setDefault = function () {
-	
+
 	if (typeof arguments['0'] === 'object') {
 		let _this = this,
 		options = arguments['0'],
@@ -242,11 +242,8 @@ httpOption.prototype.getUrl = function () {
 	return this.urlBase + this.urlPrefix + this.url + this.urlSuffix;
 };
 httpOption.prototype.getData = function () {
-	if (this.method === 'GET') {
-		return null;
-	} else {
-		return this.data;
-	}
+
+	return (this.method === 'GET') ? null : this.data;
 };
 
 httpOption.prototype.getHeaders = function () {
@@ -267,9 +264,8 @@ httpOption.prototype.getHeaders = function () {
 					'value': headers[key]
 				};
 			});
-	} else {
-		return [];
-	};
+	}
 
+	return [];
 };
 module.exports = httpOption;

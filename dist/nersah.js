@@ -136,6 +136,7 @@ function clone(obj) {
     return obj;
   }
   var temp = obj instanceof Date || obj instanceof XMLHttpRequest ? new obj.constructor() : obj.constructor();
+
   for (var key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       obj['isActiveClone'] = null;
@@ -180,12 +181,13 @@ function toQueryString(data) {
   },
       key,
       value;
+
   for (key in data) {
     if (!Object.hasOwnProperty.call(data, key)) {
       continue;
     }
     value = data[key];
-    if ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) === "object" && data instanceof Array) {
+    if ((typeof data === 'undefined' ? 'undefined' : _typeof(data)) === 'object' && data instanceof Array) {
       for (i = 0; i < value.length; i++) {
         push(key, value[i]);
       }
@@ -225,19 +227,26 @@ function extendCallback(obj, options) {
 /**
  * create a filter array function
  * @param  {Array}      Array which you want to make filter on it
- * @param  {Function}   Filter function 
+ * @param  {Function}   Filter function
  * @return {Array}     Filtered Array
  */
 function filter(ary, fun) {
-  var len = ary.length >>> 0;
-  var res = [];
-  if (typeof fun !== "function") throw new TypeError();
+  var len = ary.length >>> 0,
+      res = [];
+
+  if (typeof fun !== 'function') {
+    throw new TypeError();
+  }
 
   var thisp = fun;
+
   for (var i = 0; i < len; i++) {
     if (i in ary) {
       var val = ary[i]; // in case fun mutates ary
-      if (fun.call(thisp, val, i, ary)) res.push(val);
+
+      if (fun.call(thisp, val, i, ary)) {
+        res.push(val);
+      }
     }
   }
   return res;
@@ -260,6 +269,7 @@ module.exports = {
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
+/* eslint no-use-before-define: ["error", { "functions": false }]*/
 
 
 var _callbackHandler = __webpack_require__(6);
@@ -461,7 +471,7 @@ function NERSAH() {
 	var defaultHandler = _httpStatusCode2.default,
 	    promises = [],
 	    defaultConfig = void 0,
-	    nersah_tagname = void 0,
+	    nersahTagName = void 0,
 
 	/**
   * [buildHttpOption description]
@@ -470,14 +480,14 @@ function NERSAH() {
   * @param  {[type]} use_default [description]
   * @return {[type]}             [description]
   */
-	buildHttpOption = function buildHttpOption(method, config, use_default) {
+	buildHttpOption = function buildHttpOption(method, config, useDefault) {
 		var option = new _httpOption2.default();
 
-		if (nersah_tagname) {
-			defaultConfig['tag'] = nersah_tagname;
+		if (nersahTagName) {
+			defaultConfig['tag'] = nersahTagName;
 		}
 
-		if (use_default !== false) {
+		if (useDefault !== false) {
 			option.setDefault(defaultConfig);
 		}
 
@@ -489,7 +499,7 @@ function NERSAH() {
 
 	/**
   * Multi Promise Handler
-  * @param  {Promise-Array} _promises 
+  * @param  {Promise-Array} _promises
   * @return {Promise}       [description]
   */
 	handleMultiPromise = function handleMultiPromise(_promises) {
@@ -519,13 +529,13 @@ function NERSAH() {
 				}
 			}
 
-			_promises.forEach(function (_promise_obj, index) {
-				_promise_obj.xhr.onload = function () {
-					if (_promise_obj.xhr.status >= 200 && _promise_obj.xhr.status < 300) {
+			_promises.forEach(function (_promiseObj, index) {
+				_promiseObj.xhr.onload = function () {
+					if (_promiseObj.xhr.status >= 200 && _promiseObj.xhr.status < 300) {
 						didRequestSuccess(index);
 					} else {
 						didRequestFail(index);
-					};
+					}
 				};
 			});
 		});
@@ -537,6 +547,18 @@ function NERSAH() {
   */
 	handlePromise = function handlePromise(_promise) {
 		promises.push(_promise);
+	},
+	    handleDefault = function handleDefault(promise) {
+
+		promise.xhr.onload = function () {
+
+			var statusCode = promise.xhr.status,
+			    callbackHandler = defaultHandler[statusCode];
+
+			if (callbackHandler && typeof callbackHandler.callback === 'function') {
+				callbackHandler.callback();
+			}
+		};
 	};
 
 	return {
@@ -544,10 +566,10 @@ function NERSAH() {
 		/**
    * specify the http request to a tag
    * @param  {String} 	tag name
-   * @return {this}     	
+   * @return {this}
    */
 		setTag: function setTag(tag) {
-			nersah_tagname = tag;
+			nersahTagName = tag;
 			return this;
 		},
 
@@ -557,6 +579,7 @@ function NERSAH() {
    * @return {promise}     	promise of http calls with specify tag name
    */
 		tag: function tag(_tag) {
+			var _promises;
 
 			if (!_utilities2.default.isArray(_tag) && !_utilities2.default.isString(_tag)) {
 				return null;
@@ -564,20 +587,15 @@ function NERSAH() {
 
 			var tags = _utilities2.default.isArray(_tag) ? _tag : _tag.split(',');
 
-			var _promises = _utilities2.default.filter(promises, function (xhr_obj) {
-				return _utilities2.default.includeArray(tags, xhr_obj.xhr.tag);
+			_promises = _utilities2.default.filter(promises, function (xhrObj) {
+				return _utilities2.default.includeArray(tags, xhrObj.xhr.tag);
 			});
 
-			if (_promises.length) {
-				return handleMultiPromise(_promises);
-			} else {
-				return null;
-			}
+			return _promises.length ? handleMultiPromise(_promises) : null;
 		},
-
 		/**
    * set default setting for ajax request
-   * @param  {Object} options	 	HTTP Request Options  
+   * @param  {Object} options	 	HTTP Request Options
    * @param  {Object} hanlders 	HTTP Handler Option
    */
 		setDefault: function setDefault(options, hanlders) {
@@ -588,13 +606,10 @@ function NERSAH() {
 
 			if (hanlders) {
 				if ((typeof hanlders === 'undefined' ? 'undefined' : _typeof(hanlders)) === 'object') {
-
 					defaultHandler = _utilities2.default.extendCallback(defaultHandler, hanlders);
 				} else if (typeof hanlders === 'function') {
-
 					defaultHandler['default']['callback'] = hanlders;
 				} else {
-
 					console.error('Wrong ajax callback!');
 				}
 			}
@@ -603,25 +618,28 @@ function NERSAH() {
 		/**
    * HTTP GET Request
    * @param  {Object} 	HTTP Request Options
-   * @return {Promise} 	
+   * @return {Promise}
    */
-		get: function get(config, use_default) {
-			var xhr_obj = (0, _xhr2.default)(buildHttpOption('GET', config, use_default), defaultHandler);
+		get: function get(config, useDefault) {
+			var xhrObj = (0, _xhr2.default)(buildHttpOption('GET', config, useDefault), defaultHandler);
 
-			handlePromise(xhr_obj);
-			return xhr_obj.promise;
+			handlePromise(xhrObj);
+
+			handleDefault(xhrObj);
+
+			return xhrObj.promise;
 		},
 
 		/**
    * HTTP POST Request
    * @param  {Object} 	HTTP Request Options
-   * @return {Promise} 	
+   * @return {Promise}
    */
-		post: function post(config, use_default) {
-			var xhr_obj = (0, _xhr2.default)(buildHttpOption('POST', config, use_default), defaultHandler);
+		post: function post(config, useDefault) {
+			var xhrObj = (0, _xhr2.default)(buildHttpOption('POST', config, useDefault), defaultHandler);
 
-			handlePromise(xhr_obj);
-			return xhr_obj.promise;
+			handlePromise(xhrObj);
+			return xhrObj.promise;
 		}
 
 	};
@@ -1031,135 +1049,134 @@ module.exports = httpResponse;
 /**
  * HTTP Option Object
  */
+// let httpOptionBase = function () {
+
+// // `transformRequest` allows changes to the request data before it is sent to the server
+// // This is only applicable for request methods 'PUT', 'POST', and 'PATCH'
+// // The last function in the array must return a string or an instance of Buffer, ArrayBuffer,
+// // FormData or Stream
+// // You may modify the headers object.
+// transformRequest: [function (data, headers) {
+// // Do whatever you want to transform the data
+
+// return data;
+// }],
+
+// // `transformResponse` allows changes to the response data to be made before
+// // it is passed to then/catch
+// transformResponse: [function (data) {
+// // Do whatever you want to transform the data
+
+// return data;
+// }],
+
+// // `params` are the URL parameters to be sent with the request
+// // Must be a plain object or a URLSearchParams object
+// params: {
+// ID: 12345
+// },
+
+// // `paramsSerializer` is an optional function in charge of serializing `params`
+// // (e.g. https://www.npmjs.com/package/qs, http://api.jquery.com/jquery.param/)
+// paramsSerializer: function (params) {
+// return Qs.stringify(params, {arrayFormat: 'brackets'})
+// },
+
+// // `data` is the data to be sent as the request body
+// // Only applicable for request methods 'PUT', 'POST', and 'PATCH'
+// // When no `transformRequest` is set, must be of one of the following types:
+// // - string, plain object, ArrayBuffer, ArrayBufferView, URLSearchParams
+// // - Browser only: FormData, File, Blob
+// // - Node only: Stream, Buffer
+// data: {
+// firstName: 'Fred'
+// },
+
+// // `timeout` specifies the number of milliseconds before the request times out.
+// // If the request takes longer than `timeout`, the request will be aborted.
+// timeout: 1000,
+
+// // `withCredentials` indicates whether or not cross-site Access-Control requests
+// // should be made using credentials
+// withCredentials: false, // default
+
+// // `adapter` allows custom handling of requests which makes testing easier.
+// // Return a promise and supply a valid response (see lib/adapters/README.md).
+// adapter: function (config) {
+// /* ... */
+// },
+
+// // `auth` indicates that HTTP Basic auth should be used, and supplies credentials.
+// // This will set an `Authorization` header, overwriting any existing
+// // `Authorization` custom headers you have set using `headers`.
+// auth: {
+// username: 'janedoe',
+// password: 's00pers3cret'
+// },
+
+// // `responseType` indicates the type of data that the server will respond with
+// // options are 'arraybuffer', 'blob', 'document', 'json', 'text', 'stream'
+// responseType: 'json', // default
+
+// // `xsrfCookieName` is the name of the cookie to use as a value for xsrf token
+// xsrfCookieName: 'XSRF-TOKEN', // default
+
+// // `xsrfHeaderName` is the name of the http header that carries the xsrf token value
+// xsrfHeaderName: 'X-XSRF-TOKEN', // default
+
+// // `onUploadProgress` allows handling of progress events for uploads
+// onUploadProgress: function (progressEvent) {
+// // Do whatever you want with the native progress event
+// },
+
+// // `onDownloadProgress` allows handling of progress events for downloads
+// onDownloadProgress: function (progressEvent) {
+// // Do whatever you want with the native progress event
+// },
+
+// // `maxContentLength` defines the max size of the http response content allowed
+// maxContentLength: 2000,
+
+// // `validateStatus` defines whether to resolve or reject the promise for a given
+// // HTTP response status code. If `validateStatus` returns `true` (or is set to `null`
+// // or `undefined`), the promise will be resolved; otherwise, the promise will be
+// // rejected.
+// validateStatus: function (status) {
+// return status >= 200 && status < 300; // default
+// },
+
+// // `maxRedirects` defines the maximum number of redirects to follow in node.js.
+// // If set to 0, no redirects will be followed.
+// maxRedirects: 5, // default
+
+// // `httpAgent` and `httpsAgent` define a custom agent to be used when performing http
+// // and https requests, respectively, in node.js. This allows options to be added like
+// // `keepAlive` that are not enabled by default.
+// // httpAgent: new http.Agent({ keepAlive: true }),
+// // httpsAgent: new https.Agent({ keepAlive: true }),
+
+// // 'proxy' defines the hostname and port of the proxy server
+// // Use `false` to disable proxies, ignoring environment variables.
+// // `auth` indicates that HTTP Basic auth should be used to connect to the proxy, and
+// // supplies credentials.
+// // This will set an `Proxy-Authorization` header, overwriting any existing
+// // `Proxy-Authorization` custom headers you have set using `headers`.
+// proxy: {
+// host: '127.0.0.1',
+// port: 9000,
+// auth: {
+//   username: 'mikeymike',
+//   password: 'rapunz3l'
+// }
+// },
+
+// // `cancelToken` specifies a cancel token that can be used to cancel the request
+// // (see Cancellation section below for details)
+// // cancelToken: new CancelToken(function (cancel) {
+// // })
+// };
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var httpOptionBase = function httpOptionBase() {
-
-	// // `transformRequest` allows changes to the request data before it is sent to the server
-	// // This is only applicable for request methods 'PUT', 'POST', and 'PATCH'
-	// // The last function in the array must return a string or an instance of Buffer, ArrayBuffer,
-	// // FormData or Stream
-	// // You may modify the headers object.
-	// transformRequest: [function (data, headers) {
-	// // Do whatever you want to transform the data
-
-	// return data;
-	// }],
-
-	// // `transformResponse` allows changes to the response data to be made before
-	// // it is passed to then/catch
-	// transformResponse: [function (data) {
-	// // Do whatever you want to transform the data
-
-	// return data;
-	// }],
-
-	// // `params` are the URL parameters to be sent with the request
-	// // Must be a plain object or a URLSearchParams object
-	// params: {
-	// ID: 12345
-	// },
-
-	// // `paramsSerializer` is an optional function in charge of serializing `params`
-	// // (e.g. https://www.npmjs.com/package/qs, http://api.jquery.com/jquery.param/)
-	// paramsSerializer: function (params) {
-	// return Qs.stringify(params, {arrayFormat: 'brackets'})
-	// },
-
-	// // `data` is the data to be sent as the request body
-	// // Only applicable for request methods 'PUT', 'POST', and 'PATCH'
-	// // When no `transformRequest` is set, must be of one of the following types:
-	// // - string, plain object, ArrayBuffer, ArrayBufferView, URLSearchParams
-	// // - Browser only: FormData, File, Blob
-	// // - Node only: Stream, Buffer
-	// data: {
-	// firstName: 'Fred'
-	// },
-
-	// // `timeout` specifies the number of milliseconds before the request times out.
-	// // If the request takes longer than `timeout`, the request will be aborted.
-	// timeout: 1000,
-
-	// // `withCredentials` indicates whether or not cross-site Access-Control requests
-	// // should be made using credentials
-	// withCredentials: false, // default
-
-	// // `adapter` allows custom handling of requests which makes testing easier.
-	// // Return a promise and supply a valid response (see lib/adapters/README.md).
-	// adapter: function (config) {
-	// /* ... */
-	// },
-
-	// // `auth` indicates that HTTP Basic auth should be used, and supplies credentials.
-	// // This will set an `Authorization` header, overwriting any existing
-	// // `Authorization` custom headers you have set using `headers`.
-	// auth: {
-	// username: 'janedoe',
-	// password: 's00pers3cret'
-	// },
-
-	// // `responseType` indicates the type of data that the server will respond with
-	// // options are 'arraybuffer', 'blob', 'document', 'json', 'text', 'stream'
-	// responseType: 'json', // default
-
-	// // `xsrfCookieName` is the name of the cookie to use as a value for xsrf token
-	// xsrfCookieName: 'XSRF-TOKEN', // default
-
-	// // `xsrfHeaderName` is the name of the http header that carries the xsrf token value
-	// xsrfHeaderName: 'X-XSRF-TOKEN', // default
-
-	// // `onUploadProgress` allows handling of progress events for uploads
-	// onUploadProgress: function (progressEvent) {
-	// // Do whatever you want with the native progress event
-	// },
-
-	// // `onDownloadProgress` allows handling of progress events for downloads
-	// onDownloadProgress: function (progressEvent) {
-	// // Do whatever you want with the native progress event
-	// },
-
-	// // `maxContentLength` defines the max size of the http response content allowed
-	// maxContentLength: 2000,
-
-	// // `validateStatus` defines whether to resolve or reject the promise for a given
-	// // HTTP response status code. If `validateStatus` returns `true` (or is set to `null`
-	// // or `undefined`), the promise will be resolved; otherwise, the promise will be
-	// // rejected.
-	// validateStatus: function (status) {
-	// return status >= 200 && status < 300; // default
-	// },
-
-	// // `maxRedirects` defines the maximum number of redirects to follow in node.js.
-	// // If set to 0, no redirects will be followed.
-	// maxRedirects: 5, // default
-
-	// // `httpAgent` and `httpsAgent` define a custom agent to be used when performing http
-	// // and https requests, respectively, in node.js. This allows options to be added like
-	// // `keepAlive` that are not enabled by default.
-	// // httpAgent: new http.Agent({ keepAlive: true }),
-	// // httpsAgent: new https.Agent({ keepAlive: true }),
-
-	// // 'proxy' defines the hostname and port of the proxy server
-	// // Use `false` to disable proxies, ignoring environment variables.
-	// // `auth` indicates that HTTP Basic auth should be used to connect to the proxy, and
-	// // supplies credentials.
-	// // This will set an `Proxy-Authorization` header, overwriting any existing
-	// // `Proxy-Authorization` custom headers you have set using `headers`.
-	// proxy: {
-	// host: '127.0.0.1',
-	// port: 9000,
-	// auth: {
-	//   username: 'mikeymike',
-	//   password: 'rapunz3l'
-	// }
-	// },
-
-	// // `cancelToken` specifies a cancel token that can be used to cancel the request
-	// // (see Cancellation section below for details)
-	// // cancelToken: new CancelToken(function (cancel) {
-	// // })
-};
 
 var httpOption = function httpOption() {
 
@@ -1167,7 +1184,7 @@ var httpOption = function httpOption() {
 	this.url = '';
 
 	// `method` is the request method to be used when making the request
-	this.method = 'GET'; //'GET', 'DELETE', 'POST', 'PUT', 'PATCH', 'HEAD'
+	this.method = 'GET'; // 'GET', 'DELETE', 'POST', 'PUT', 'PATCH', 'HEAD'
 
 	// `baseURL` will be prepended to `url` unless `url` is absolute.
 	// It can be convenient to set `baseURL` for an instance of axios to pass relative URLs
@@ -1267,11 +1284,8 @@ httpOption.prototype.getUrl = function () {
 	return this.urlBase + this.urlPrefix + this.url + this.urlSuffix;
 };
 httpOption.prototype.getData = function () {
-	if (this.method === 'GET') {
-		return null;
-	} else {
-		return this.data;
-	}
+
+	return this.method === 'GET' ? null : this.data;
 };
 
 httpOption.prototype.getHeaders = function () {
@@ -1291,9 +1305,9 @@ httpOption.prototype.getHeaders = function () {
 				'value': headers[key]
 			};
 		});
-	} else {
-		return [];
-	};
+	}
+
+	return [];
 };
 module.exports = httpOption;
 

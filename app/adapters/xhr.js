@@ -1,6 +1,6 @@
 'use strict';
 
-import promise from './../helpers/promise';
+import Promise from './../helpers/promise';
 import xmlHttpRequest from './../helpers/xmlHttpRequest';
 import httpHandler from './../helpers/httpHandler';
 
@@ -15,7 +15,7 @@ module.exports = function xhrAdapter(config, defaultHandler) {
 
 	return {
 		'xhr': xmlHttp,
-		'promise': new promise(function (resolve, reject, updater) {
+		'promise': new Promise(function (resolve, reject, updater) {
 			/**
 			 * [onResolve description]
 			 * @type {[type]}

@@ -37,7 +37,7 @@ function isNumber(val) {
  * @param {String} str The value to test
  * @returns {boolean} True if value is a Number, otherwise false
  */
-function includeArray(arr,str) {
+function includeArray(arr, str) {
   return (arr.indexOf(str) !== -1);
 }
 
@@ -48,10 +48,11 @@ function includeArray(arr,str) {
  * @returns {Object} True clone of given object
  */
 function clone(obj) {
-    if (obj === null || typeof(obj) !== 'object' || 'isActiveClone' in obj) {
+    if (obj === null || typeof obj !== 'object' || 'isActiveClone' in obj) {
         return obj;
     }
-    let temp = (obj instanceof Date || obj instanceof XMLHttpRequest) ? (new obj.constructor()) : obj.constructor();    
+    let temp = (obj instanceof Date || obj instanceof XMLHttpRequest) ? (new obj.constructor()) : obj.constructor();
+
     for (let key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
             obj['isActiveClone'] = null;
@@ -96,10 +97,11 @@ function toQueryString(data) {
   push = function (key, value) {
     query += encodeURIComponent(key) + '=' + encodeURIComponent(value) + '&';
   }, key, value;
+
   for (key in data) {
     if (!Object.hasOwnProperty.call(data, key)) {continue;}
     value = data[key];
-    if ((typeof (data) === "object") && (data instanceof Array)) {
+    if ((typeof data === 'object') && (data instanceof Array)) {
       for (i = 0; i < value.length; i++) { push(key, value[i]);}
     } else {
       push(key, data[key]);
@@ -114,12 +116,12 @@ function toQueryString(data) {
  * @param {Object|Array} val The value to test
  * @returns {String} True if value is a Number, otherwise false
  */
-function extendCallback(obj , options) {
+function extendCallback(obj, options) {
   Object.keys(options).forEach(code => {
     if (obj.hasOwnProperty(code)) {
-      if (typeof obj[ code ] === 'object' &&  typeof options[ code ] === 'function') {
+      if (typeof obj[ code ] === 'object' && typeof options[ code ] === 'function') {
         obj[ code ]['callback'] = options[ code ];
-      }else if(typeof obj[ code ] === 'object' &&  typeof options[ code ] === 'object') {
+      } else if (typeof obj[ code ] === 'object' && typeof options[ code ] === 'object') {
         if (typeof options[ code ].status === 'string') {
           obj[ code ]['status'] = options[ code ].status;
         }
@@ -127,7 +129,7 @@ function extendCallback(obj , options) {
           obj[ code ]['callback'] = options[ code ].callback;
         }
       }
-    }else if(code === 'function') {
+    } else if (code === 'function') {
       obj[ 'default' ]['callback'] = options[ code ];
     }
   });
@@ -137,34 +139,39 @@ function extendCallback(obj , options) {
 /**
  * create a filter array function
  * @param  {Array}      Array which you want to make filter on it
- * @param  {Function}   Filter function 
+ * @param  {Function}   Filter function
  * @return {Array}     Filtered Array
  */
 function filter(ary, fun) {
-  var len = ary.length >>> 0;
-  var res = [];
-  if (typeof fun !== "function")
-  throw new TypeError();
+  var len = ary.length >>> 0,
+  res = [];
+
+  if (typeof fun !== 'function') {
+    throw new TypeError();
+  }
 
   let thisp = fun;
+
   for (let i = 0; i < len; i++) {
     if (i in ary) {
       let val = ary[i]; // in case fun mutates ary
-      if (fun.call(thisp, val, i, ary))
-      res.push(val);
+
+      if (fun.call(thisp, val, i, ary)) {
+        res.push(val);
+      }
     }
   }
   return res;
 }
 
 module.exports = {
-	isArray: isArray,
-	isString: isString,
-	isNumber: isNumber,
-  includeArray:includeArray,
-	clone: clone,
+  isArray: isArray,
+  isString: isString,
+  isNumber: isNumber,
+  includeArray: includeArray,
+  clone: clone,
   filter: filter,
   extendCallback: extendCallback,
   toQueryString: toQueryString,
-	isStandardBrowserEnv: isStandardBrowserEnv
+  isStandardBrowserEnv: isStandardBrowserEnv
 };
