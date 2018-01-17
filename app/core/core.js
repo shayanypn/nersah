@@ -39,32 +39,41 @@ export default function NERSAH() {
 	 * @param  {Promise-Array} _promises
 	 * @return {Promise}       [description]
 	 */
-	handleMultiPromise = function (_promises) {
+	handleMultiPromise = function (promises) {
 		return new Promise(function (resolve, reject, handler) {
 
-			let successItem = [],
-			failItem = [];
-
-			function didRequestSuccess(item) {
-				if (successItem.indexOf(item) === -1) {
-					successItem.push(item);
-					if (successItem.length === _promises.length) {
-						resolve(_promises.map(function (item) { return item.promise; }));
+			let successPromises = [],
+			failPromises = [],
+			mapRequests = function () {
+				return promises.map(function (item) { return item.promise; });
+			},
+			didRequestSuccess = function (item) {
+				if (successPromises.indexOf(item) === -1) {
+					successPromises.push(item);
+					if (successPromises.length === promises.length) {
+						setTimeout(function () {
+							resolve(mapRequests());
+						},10);
 					}
 				}
-			}
-			function didRequestFail(item) {
-				if (failItem.indexOf(item) === -1) {
-					failItem.push(item);
-					if (failItem.length !== 0 && (failItem.length + successItem.length) === _promises.length) {
-						reject(_promises.map(function (item) { return item.promise; }));
+			},
+			didRequestFail = function (item) {
+				if (failPromises.indexOf(item) === -1) {
+					failPromises.push(item);
+					if (
+						failPromises.length !== 0 &&
+						(failPromises.length + successPromises.length) === promises.length
+						) {
+						setTimeout(function () {
+							reject(mapRequests());
+						},10);
 					}
 				}
-			}
+			};
 
-			_promises.forEach(function (_promiseObj, index) {
-				_promiseObj.xhr.onload = function () {
-					if (_promiseObj.xhr.status >= 200 && _promiseObj.xhr.status < 300) {
+			promises.forEach(function (promiseObj, index) {
+				promiseObj.xhr.onload = function () {
+					if (promiseObj.xhr.status >= 200 && promiseObj.xhr.status < 300) {
 						didRequestSuccess(index);
 					} else {
 						didRequestFail(index);
@@ -83,8 +92,7 @@ export default function NERSAH() {
 
 	handleDefault = function (promise) {
 
-		promise.xhr.onload = function() {
-
+		promise.xhr.onload = function () {
 			var statusCode = promise.xhr.status,
 			callbackHandler = defaultHandler[ statusCode ];
 
@@ -172,6 +180,36 @@ export default function NERSAH() {
 		post: function (config, useDefault) {
 			let xhrObj = xhrAdapter(
 				buildHttpOption('POST', config, useDefault),
+				defaultHandler
+			);
+
+			handlePromise(xhrObj);
+			return xhrObj.promise;
+		},
+
+		/**
+		 * HTTP PATCH Request
+		 * @param  {Object} 	HTTP Request Options
+		 * @return {Promise}
+		 */
+		patch: function (config, useDefault) {
+			let xhrObj = xhrAdapter(
+				buildHttpOption('PATCH', config, useDefault),
+				defaultHandler
+			);
+
+			handlePromise(xhrObj);
+			return xhrObj.promise;
+		},
+
+		/**
+		 * HTTP PUT Request
+		 * @param  {Object} 	HTTP Request Options
+		 * @return {Promise}
+		 */
+		put: function (config, useDefault) {
+			let xhrObj = xhrAdapter(
+				buildHttpOption('PUT', config, useDefault),
 				defaultHandler
 			);
 

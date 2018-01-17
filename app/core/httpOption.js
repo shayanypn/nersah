@@ -172,9 +172,15 @@ let httpOption = function () {
 
 	/**
 	 * `headers` are custom headers to be sent
-	 * @type {Object|Function}
+	 * @type {Object}
 	 */
 	this.headers = {};
+
+	/**
+	 * `headers` are custom headers to be sent
+	 * @type {Function}
+	 */
+	this.headerFn;
 
 };
 
@@ -194,9 +200,11 @@ httpOption.prototype.setDefault = function () {
 		/**
 		 * get headers
 		 */
-		if (typeof options.headers === 'object' || typeof options.headers === 'function') {
+		if (typeof options.headers === 'object') {
 			this.headers = options.headers;
-		};
+		}else if( typeof options.headers === 'function'){
+			this.headerFn = options.headers;			
+		}
 
 	} else {
 
@@ -232,6 +240,8 @@ httpOption.prototype.extend = function () {
 		.forEach(function (name) {
 			_this.headers[name] = options.headers[name];
 		});
+	}else if(typeof options.headers == 'function') {
+		_this.headers = options.headers;
 	}
 };
 
@@ -239,7 +249,7 @@ httpOption.prototype.isValid = function () {
 	return true;
 };
 httpOption.prototype.getUrl = function () {
-	return this.urlBase + this.urlPrefix + this.url + this.urlSuffix;
+	return this.url.split('')[0] === '~' ? (this.urlBase + this.urlPrefix + this.url + this.urlSuffix) : this.url;
 };
 httpOption.prototype.getData = function () {
 
@@ -249,10 +259,15 @@ httpOption.prototype.getData = function () {
 httpOption.prototype.getHeaders = function () {
 	let headers;
 
-	if (typeof this.headers === 'function') {
-		headers = this.headers();
-	} else if (typeof this.headers === 'object') {
-		headers = this.headers;
+
+	if (typeof this.headerFn === 'function') {
+		headers = this.headerFn();
+	}
+
+	if (typeof this.headers === 'object') {
+		headers = Object.assign(headers,this.headers);
+	}else if(typeof this.headers === 'function'){
+		headers = this.headers(headers);
 	}
 
 	if (typeof headers === 'object') {

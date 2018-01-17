@@ -502,36 +502,40 @@ function NERSAH() {
   * @param  {Promise-Array} _promises
   * @return {Promise}       [description]
   */
-	handleMultiPromise = function handleMultiPromise(_promises) {
+	handleMultiPromise = function handleMultiPromise(promises) {
 		return new _promise3.default(function (resolve, reject, handler) {
 
-			var successItem = [],
-			    failItem = [];
-
-			function didRequestSuccess(item) {
-				if (successItem.indexOf(item) === -1) {
-					successItem.push(item);
-					if (successItem.length === _promises.length) {
-						resolve(_promises.map(function (item) {
-							return item.promise;
-						}));
+			var successPromises = [],
+			    failPromises = [],
+			    mapRequests = function mapRequests() {
+				return promises.map(function (item) {
+					return item.promise;
+				});
+			},
+			    didRequestSuccess = function didRequestSuccess(item) {
+				if (successPromises.indexOf(item) === -1) {
+					successPromises.push(item);
+					if (successPromises.length === promises.length) {
+						setTimeout(function () {
+							resolve(mapRequests());
+						}, 10);
 					}
 				}
-			}
-			function didRequestFail(item) {
-				if (failItem.indexOf(item) === -1) {
-					failItem.push(item);
-					if (failItem.length !== 0 && failItem.length + successItem.length === _promises.length) {
-						reject(_promises.map(function (item) {
-							return item.promise;
-						}));
+			},
+			    didRequestFail = function didRequestFail(item) {
+				if (failPromises.indexOf(item) === -1) {
+					failPromises.push(item);
+					if (failPromises.length !== 0 && failPromises.length + successPromises.length === promises.length) {
+						setTimeout(function () {
+							reject(mapRequests());
+						}, 10);
 					}
 				}
-			}
+			};
 
-			_promises.forEach(function (_promiseObj, index) {
-				_promiseObj.xhr.onload = function () {
-					if (_promiseObj.xhr.status >= 200 && _promiseObj.xhr.status < 300) {
+			promises.forEach(function (promiseObj, index) {
+				promiseObj.xhr.onload = function () {
+					if (promiseObj.xhr.status >= 200 && promiseObj.xhr.status < 300) {
 						didRequestSuccess(index);
 					} else {
 						didRequestFail(index);
@@ -551,7 +555,6 @@ function NERSAH() {
 	    handleDefault = function handleDefault(promise) {
 
 		promise.xhr.onload = function () {
-
 			var statusCode = promise.xhr.status,
 			    callbackHandler = defaultHandler[statusCode];
 
@@ -637,6 +640,30 @@ function NERSAH() {
    */
 		post: function post(config, useDefault) {
 			var xhrObj = (0, _xhr2.default)(buildHttpOption('POST', config, useDefault), defaultHandler);
+
+			handlePromise(xhrObj);
+			return xhrObj.promise;
+		},
+
+		/**
+   * HTTP PATCH Request
+   * @param  {Object} 	HTTP Request Options
+   * @return {Promise}
+   */
+		patch: function patch(config, useDefault) {
+			var xhrObj = (0, _xhr2.default)(buildHttpOption('PATCH', config, useDefault), defaultHandler);
+
+			handlePromise(xhrObj);
+			return xhrObj.promise;
+		},
+
+		/**
+   * HTTP PUT Request
+   * @param  {Object} 	HTTP Request Options
+   * @return {Promise}
+   */
+		put: function put(config, useDefault) {
+			var xhrObj = (0, _xhr2.default)(buildHttpOption('PUT', config, useDefault), defaultHandler);
 
 			handlePromise(xhrObj);
 			return xhrObj.promise;
@@ -1220,9 +1247,15 @@ var httpOption = function httpOption() {
 
 	/**
   * `headers` are custom headers to be sent
-  * @type {Object|Function}
+  * @type {Object}
   */
 	this.headers = {};
+
+	/**
+  * `headers` are custom headers to be sent
+  * @type {Function}
+  */
+	this.headerFn;
 };
 
 httpOption.prototype.setDefault = function () {
@@ -1241,9 +1274,11 @@ httpOption.prototype.setDefault = function () {
 		/**
    * get headers
    */
-		if (_typeof(options.headers) === 'object' || typeof options.headers === 'function') {
+		if (_typeof(options.headers) === 'object') {
 			this.headers = options.headers;
-		};
+		} else if (typeof options.headers === 'function') {
+			this.headerFn = options.headers;
+		}
 	} else {}
 };
 
@@ -1274,6 +1309,8 @@ httpOption.prototype.extend = function () {
 		Object.keys(options.headers).forEach(function (name) {
 			_this.headers[name] = options.headers[name];
 		});
+	} else if (typeof options.headers == 'function') {
+		_this.headers = options.headers;
 	}
 };
 
@@ -1281,7 +1318,7 @@ httpOption.prototype.isValid = function () {
 	return true;
 };
 httpOption.prototype.getUrl = function () {
-	return this.urlBase + this.urlPrefix + this.url + this.urlSuffix;
+	return this.url.split('')[0] === '~' ? this.urlBase + this.urlPrefix + this.url + this.urlSuffix : this.url;
 };
 httpOption.prototype.getData = function () {
 
@@ -1291,10 +1328,14 @@ httpOption.prototype.getData = function () {
 httpOption.prototype.getHeaders = function () {
 	var headers = void 0;
 
-	if (typeof this.headers === 'function') {
-		headers = this.headers();
-	} else if (_typeof(this.headers) === 'object') {
-		headers = this.headers;
+	if (typeof this.headerFn === 'function') {
+		headers = this.headerFn();
+	}
+
+	if (_typeof(this.headers) === 'object') {
+		headers = Object.assign(headers, this.headers);
+	} else if (typeof this.headers === 'function') {
+		headers = this.headers(headers);
 	}
 
 	if ((typeof headers === 'undefined' ? 'undefined' : _typeof(headers)) === 'object') {

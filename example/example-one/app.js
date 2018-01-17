@@ -13,7 +13,7 @@ var print = {
 
 		ele.appendChild( div );
 
-		console.log('w:', text);
+		//console.log('w:', text);
 	},
 	log: function(text){
 		var ele = document.getElementById('log');
@@ -23,7 +23,7 @@ var print = {
 
 		ele.appendChild( div );
 
-		console.log('l:', text);
+		//console.log('l:', text);
 	}
 };
 
@@ -81,9 +81,11 @@ var TOKEN;
 
 print.write('simple-ajax','------ start ------');
 nersah
+.setTag('tag1')
 .get('/')
 .then(function(response, httpResponse){
 
+	//console.log('R1');
 	print.log('app version:'+ JSON.stringify(response) );
 
 	print.write('simple-ajax','success');
@@ -101,6 +103,7 @@ nersah
 
 print.write('login-ajax','------ start ------');
 nersah
+.setTag('tag1')
 .post({
 	url: '/token',
 	data: JSON.stringify({
@@ -110,6 +113,7 @@ nersah
 })
 .then(function(response){
 	
+	//console.log('R2');
 	print.write('login-ajax','------ start ------');
 	console.log(response.id);
 	TOKEN = response.id;
@@ -124,6 +128,7 @@ nersah
 
 function getAllTokens(){
 	nersah
+	.setTag('tag1')
 	.get({
 		url: '/token',
 		headers: ['Authorization:'+TOKEN]
@@ -150,10 +155,12 @@ function getAllTokens(){
 
 
 // nersah
-// .tag(['version','login']) 
+// .tag(['tag1','login']) 
 // .then(function(promises){
-// 	print.log( 'tags finish with success :: ' + promises);
-// },function(promises){
-// 	print.log('tags finish with failuare ::' + promises);
-// });
 
+// 	console.log( promises );
+
+// 	// print.log( '---- tags finish with success :: ', promises);
+// },function(promises){
+// 	// print.log('---- tags finish with failuare ::', promises);
+// });
