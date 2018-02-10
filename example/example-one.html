@@ -7,7 +7,7 @@
 </head>
 <body>
 
-<div class="container">
+<!-- <div class="container">
 	<div class="row">
 		<div class="col-sm-12">
 			<div class="jumbotron">
@@ -16,60 +16,42 @@
 			</div>
 		</div>
 	</div>
-</div>
+</div> -->
 <div class="container">
 	<div class="row">
-		<div class="col-md-6">
+		<div class="col-md-4">
 			<div class="card">
-				<div class="card-header">Simple Ajax</div>
-				<div class="card-body" id="simple-ajax"></div>
-			</div>
-			<div class="card">
-				<div class="card-header">Login</div>
-				<div class="card-body" id="login-ajax"></div>
-			</div>
-		</div>
-		<div class="col-md-6">
-			<div class="card">
-				<div class="card-header">Log</div>
-				<div class="card-body" id="log"></div>
+				<div class="card-header">
+					Simple Get
+					<button id="btn-simple-get" class="btn btn-sm btn-primary float-right">Call</button>
+				</div>
+				<div class="card-body" id="log-simple-get"></div>
 			</div>
 		</div>
-		<div class="col-sm-12"><hr></div>
-
+		<div class="col-md-4">
+			<div class="card">
+				<div class="card-header">
+					Simple POST
+					<button id="btn-simple-post" class="btn btn-sm btn-primary float-right">Call</button>
+				</div>
+				<div class="card-body" id="log-simple-post"></div>
+			</div>
+		</div>
+		<div class="col-md-4">
+			<div class="card">
+				<div class="card-header">
+					Simple PUT
+					<button id="btn-simple-put" class="btn btn-sm btn-primary float-right">Call</button>
+				</div>
+				<div class="card-body" id="log-simple-put"></div>
+			</div>
+		</div>
 	</div>
 </div>
+
+<script type="text/javascript" src="app.js"></script>
 <script type="text/javascript" src="../dist/nersah.js"></script>
 <script type="text/javascript">
-
-
-/**
- * LOGGER
- */
-
-var print = {
-	write: function(context, text){
-		var ele = document.getElementById(context);
-
-		var div = document.createElement('div');
-		div.innerHTML = (new Date()).getTime()+' -> '+text;
-
-		ele.appendChild( div );
-
-		//console.log('w:', text);
-	},
-	log: function(text){
-		var ele = document.getElementById('log');
-
-		var div = document.createElement('div');
-		div.innerHTML = (new Date()).getTime()+' -> '+text;
-
-		ele.appendChild( div );
-
-		//console.log('l:', text);
-	}
-};
-
 
 
 
@@ -87,22 +69,22 @@ nersah.setDefault(
 		dataType: 'json',
 
 		headers: function(){
-			if ( TOKEN ) {
+			// if ( TOKEN ) {
+			// 	return {
+			// 		'Authorization': TOKEN,
+			// 		'content-type': 'application/json'
+			// 	};
+			// }else{
 				return {
-					'Authorization': TOKEN,
 					'content-type': 'application/json'
 				};
-			}else{
-				return {
-					'content-type': 'application/json'
-				};
-			};
+			// };
 		}
 	},
 	{
 	200: function(http){
 		print.log('GLOBAL::200 ');
-		print.write('simple-ajax','------ GLOBAL:200 ------');
+		print.write('log-simple-get','------ GLOBAL:200 ------');
 	},
 	400: function(http){
 		print.log('GLOBAL::400 ');
@@ -114,29 +96,90 @@ nersah.setDefault(
 
 
 
-var TOKEN;
+
+
+/***********************************************
+ * SIMPLE GET
+ */
+
+document.getElementById('btn-simple-get')
+.addEventListener('click', function(){
+	print.write('log-simple-get','------ start ------');
+	nersah
+	// .setTag('tag1')
+	.get('~')
+	.then(function(response, httpResponse){
+
+		print.write('log-simple-get','Request Response is here');
+		print.write('log-simple-get','------ end ------');
+	}, function(){
+		print.write('log-simple-get','fail');
+		print.write('log-simple-get','------ end ------');	
+	});
+});
+
+
+/***********************************************
+ * SIMPLE POST
+ */
+document.getElementById('btn-simple-post')
+.addEventListener('click', function(){
+	print.write('log-simple-post','------ start ------');
+	nersah
+	.post('~')
+	.then(function(response, httpResponse){
+
+		print.write('log-simple-post','Request Response is here');
+		print.write('log-simple-post','------ end ------');
+	}, function(){
+		print.write('log-simple-post','fail');
+		print.write('log-simple-post','------ end ------');
+	});
+});
 
 
 
 /***********************************************
- * SIMPLE AJAX
+ * SIMPLE PUT
  */
+document.getElementById('btn-simple-put')
+.addEventListener('click', function(){
+	print.write('log-simple-put','------ start ------');
+	nersah
+	.put('~')
+	.then(function(response, httpResponse){
 
-print.write('simple-ajax','------ start ------');
-nersah
-.setTag('tag1')
-.get('/')
-.then(function(response, httpResponse){
-
-	//console.log('R1');
-	print.log('app version:'+ JSON.stringify(response) );
-
-	print.write('simple-ajax','success');
-	print.write('simple-ajax','------ end ------');
-}, function(){
-	print.write('simple-ajax','fail');
-	print.write('simple-ajax','------ end ------');	
+		print.write('log-simple-put','Request Response is here');
+		print.write('log-simple-put','------ end ------');
+	}, function(){
+		print.write('log-simple-put','fail');
+		print.write('log-simple-put','------ end ------');
+	});
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -144,42 +187,44 @@ nersah
  * 
  */
 
-print.write('login-ajax','------ start ------');
-nersah
-.setTag('tag1')
-.post({
-	url: '/post',
-	data: JSON.stringify({
-		mail: 'admin',
-		password: 'admin'
-	})
-})
-.then(function(response){
+// print.write('login-ajax','------ start ------');
+// nersah
+// .setTag('tag1')
+// .post({
+// 	url: '/post',
+// 	data: JSON.stringify({
+// 		mail: 'admin',
+// 		password: 'admin'
+// 	})
+// })
+// .then(function(response){
 	
-	//console.log('R2');
-	print.write('login-ajax','------ start ------');
-	console.log(response.id);
-	TOKEN = response.id;
+// 	//console.log('R2');
+// 	print.write('login-ajax','------ start ------');
+// 	console.log(response.id);
+// 	TOKEN = response.id;
 
-	getAllTokens();
-});
-
-
+// 	getAllTokens();
+// });
 
 
 
 
-function getAllTokens(){
-	nersah
-	.setTag('tag1')
-	.get({
-		url: '/token',
-		headers: ['Authorization:'+TOKEN]
-	})
-	.then(function(response){
-		print.log('tokens::'+ response);
-	});
-};
+
+
+// function getAllTokens(){
+// 	nersah
+// 	.setTag('tag1')
+// 	.get({
+// 		url: '/token',
+// 		headers: ['Authorization:'+TOKEN]
+// 	})
+// 	.then(function(response){
+// 		print.log('tokens::'+ response);
+// 	});
+// };
+
+
 </script>
 </body>
 </html>

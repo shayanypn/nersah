@@ -53,7 +53,7 @@ export default function NERSAH() {
 					if (successPromises.length === promises.length) {
 						setTimeout(function () {
 							resolve(mapRequests());
-						},10);
+						}, 10);
 					}
 				}
 			},
@@ -66,7 +66,7 @@ export default function NERSAH() {
 						) {
 						setTimeout(function () {
 							reject(mapRequests());
-						},10);
+						}, 10);
 					}
 				}
 			};

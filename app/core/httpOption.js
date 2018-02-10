@@ -202,8 +202,8 @@ httpOption.prototype.setDefault = function () {
 		 */
 		if (typeof options.headers === 'object') {
 			this.headers = options.headers;
-		}else if( typeof options.headers === 'function'){
-			this.headerFn = options.headers;			
+		} else if (typeof options.headers === 'function') {
+			this.headerFn = options.headers;
 		}
 
 	} else {
@@ -240,7 +240,7 @@ httpOption.prototype.extend = function () {
 		.forEach(function (name) {
 			_this.headers[name] = options.headers[name];
 		});
-	}else if(typeof options.headers == 'function') {
+	} else if (typeof options.headers === 'function') {
 		_this.headers = options.headers;
 	}
 };
@@ -249,7 +249,7 @@ httpOption.prototype.isValid = function () {
 	return true;
 };
 httpOption.prototype.getUrl = function () {
-	return this.url.split('')[0] === '~' ? (this.urlBase + this.urlPrefix + this.url + this.urlSuffix) : this.url;
+	return this.url.split('')[0] === '~' ? (this.urlBase + this.urlPrefix + '/' + this.url.slice(1,this.url.length) + this.urlSuffix) : this.url;
 };
 httpOption.prototype.getData = function () {
 
@@ -259,14 +259,13 @@ httpOption.prototype.getData = function () {
 httpOption.prototype.getHeaders = function () {
 	let headers;
 
-
 	if (typeof this.headerFn === 'function') {
 		headers = this.headerFn();
 	}
 
 	if (typeof this.headers === 'object') {
-		headers = Object.assign(headers,this.headers);
-	}else if(typeof this.headers === 'function'){
+		headers = Object.assign(headers, this.headers);
+	} else if (typeof this.headers === 'function') {
 		headers = this.headers(headers);
 	}
 

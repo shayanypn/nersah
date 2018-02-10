@@ -426,9 +426,13 @@ var _core2 = _interopRequireDefault(_core);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-window.nersah = new _core2.default();
-module.exports = new _core2.default();
-// module.exports.default = CORE();
+var myWindow = typeof window !== 'undefined' ? window : {};
+
+myWindow.nersah = new _core2.default();
+
+module.exports = myWindow.nersah;
+
+module.exports.default = myWindow.nersah;
 
 /***/ }),
 /* 3 */
@@ -1309,7 +1313,7 @@ httpOption.prototype.extend = function () {
 		Object.keys(options.headers).forEach(function (name) {
 			_this.headers[name] = options.headers[name];
 		});
-	} else if (typeof options.headers == 'function') {
+	} else if (typeof options.headers === 'function') {
 		_this.headers = options.headers;
 	}
 };
@@ -1318,7 +1322,7 @@ httpOption.prototype.isValid = function () {
 	return true;
 };
 httpOption.prototype.getUrl = function () {
-	return this.url.split('')[0] === '~' ? this.urlBase + this.urlPrefix + this.url + this.urlSuffix : this.url;
+	return this.url.split('')[0] === '~' ? this.urlBase + this.urlPrefix + '/' + this.url.slice(1, this.url.length) + this.urlSuffix : this.url;
 };
 httpOption.prototype.getData = function () {
 

@@ -1,6 +1,6 @@
 const express = require('express')
 const app = express()
-const DELAY = 1000;
+const DELAY = 2000;
 
 
 app.get('/', (req, res) => {
@@ -33,7 +33,16 @@ app.get('/api/post', (req, res) => {
 			msg: 'Dev server is running!'
 		})
 	},DELAY)
-})
+});
+app.get('/api/put', (req, res) => {
+	setTimeout(function(){
+		res.send({
+			status: 200,
+			msg: 'Dev server is running!'
+		})
+	},DELAY)
+});
+
 
 
 app.listen(3000, () => console.log('Example app listening on port 3000!'))
