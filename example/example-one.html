@@ -12,31 +12,63 @@
 		<div class="col-md-12"><br /></div>
 	</div>
 	<div class="row">
-		<div class="col-md-4">
+		<div class="col-sm-8">
 			<div class="card">
 				<div class="card-header">
 					Simple Get
 					<button id="btn-simple-get" class="btn btn-sm btn-primary float-right">Call</button>
 				</div>
-				<div class="card-body" id="log-simple-get"></div>
+				<div class="card-body">
+					<div class="row">
+						<div class="col-xs-6"><pre></pre></div>
+						<div class="col-xs-6"><div id="log-simple-get"></div></div>
+					</div>
+					<div class="clearfix"></div>
+				</div>
 			</div>
-		</div>
-		<div class="col-md-4">
 			<div class="card">
 				<div class="card-header">
 					Simple POST
 					<button id="btn-simple-post" class="btn btn-sm btn-primary float-right">Call</button>
 				</div>
-				<div class="card-body" id="log-simple-post"></div>
+				<div class="card-body">
+					<div class="row">
+						<div class="col-xs-6"><pre></pre></div>
+						<div class="col-xs-6"><div id="log-simple-post"></div></div>
+					</div>
+					<div class="clearfix"></div>
+				</div>
 			</div>
-		</div>
-		<div class="col-md-4">
 			<div class="card">
 				<div class="card-header">
 					Simple PUT
 					<button id="btn-simple-put" class="btn btn-sm btn-primary float-right">Call</button>
 				</div>
-				<div class="card-body" id="log-simple-put"></div>
+				<div class="card-body">
+					<div class="row">
+						<div class="col-xs-6"><pre></pre></div>
+						<div class="col-xs-6"><div id="log-simple-put"></div></div>
+					</div>
+					<div class="clearfix"></div>
+				</div>
+			</div>
+		</div>
+		<div class="col-sm-4">
+			<div class="well well-xs" id="main-log">
+				<br />
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-4">
+			<div class="card">
+				<div class="card-header">
+					Taging
+					<button id="btn-simple-tag" class="btn btn-sm btn-primary float-right">Call</button>
+				</div>
+				<div class="card-body">
+					<div id="log-simple-tag"></div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -46,15 +78,15 @@
 <script type="text/javascript" src="../dist/nersah.js"></script>
 <script type="text/javascript">
 
-
+var url = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
 
 /**
  * nersah config
  */
 nersah.setDefault(
 	{
-		urlBase: '//localhost:3000',
-		urlPrefix: '/api',
+		urlBase: url+'/',
+		urlPrefix: '',
 		urlSuffix: '',
 
 		timeout: 3000,
@@ -76,7 +108,7 @@ nersah.setDefault(
 	},
 	{
 	200: function(http){
-		print.log('GLOBAL::200 ');
+		// print.log('GLOBAL::200 ');
 		print.write('log-simple-get','------ GLOBAL:200 ------');
 	},
 	400: function(http){
@@ -97,18 +129,19 @@ nersah.setDefault(
 
 document.getElementById('btn-simple-get')
 .addEventListener('click', function(){
+	document.getElementById('log-simple-get').innerHTML = ' ';
 	print.write('log-simple-get','------ start ------');
 	nersah
 	// .setTag('tag1')
-	.get('~')
+	.get('~api.php')
 	.then(function(response, httpResponse){
 
 		print.write('log-simple-get','Request Response is here');
-		print.write('log-simple-get','------ end ------');
 	}, function(){
 		print.write('log-simple-get','fail');
+	}).then(function(){
 		print.write('log-simple-get','------ end ------');	
-	});
+	})
 });
 
 
@@ -117,40 +150,65 @@ document.getElementById('btn-simple-get')
  */
 document.getElementById('btn-simple-post')
 .addEventListener('click', function(){
+	document.getElementById('log-simple-post').innerHTML = '';
 	print.write('log-simple-post','------ start ------');
 	nersah
-	.post('~')
+	.post('~api.php')
 	.then(function(response, httpResponse){
 
 		print.write('log-simple-post','Request Response is here');
-		print.write('log-simple-post','------ end ------');
 	}, function(){
 		print.write('log-simple-post','fail');
-		print.write('log-simple-post','------ end ------');
-	});
+	}).then(function(){
+		print.write('log-simple-post','------ end ------');	
+	})
 });
-
-
 
 /***********************************************
  * SIMPLE PUT
  */
 document.getElementById('btn-simple-put')
 .addEventListener('click', function(){
+	document.getElementById('log-simple-put').innerHTML = '';
 	print.write('log-simple-put','------ start ------');
 	nersah
-	.put('~')
+	.post('~api.php')
 	.then(function(response, httpResponse){
 
 		print.write('log-simple-put','Request Response is here');
-		print.write('log-simple-put','------ end ------');
 	}, function(){
 		print.write('log-simple-put','fail');
-		print.write('log-simple-put','------ end ------');
-	});
+	}).then(function(){
+		print.write('log-simple-put','------ end ------');	
+	})
 });
 
 
+/***********************************************
+ * SIMPLE Tag
+ */
+// document.getElementById('btn-simple-tag')
+// .addEventListener('click', function(){
+// 	print.write('log-simple-tag','------ start ------');
+// 	nersah.tag('my-tag', function(){
+// 		console.log('tag success');
+// 	}, function(){
+// 		console.log('tag fail');
+// 	});
+
+
+// 	nersah
+// 	.setTag('my-tag')
+// 	.get('~api.php')
+// 	.then(function(response, httpResponse){
+
+// 		print.write('log-simple-tag','Request Response is here');
+// 		print.write('log-simple-tag','------ end ------');
+// 	}, function(){
+// 		print.write('log-simple-tag','fail');
+// 		print.write('log-simple-tag','------ end ------');
+// 	});
+// });
 
 
 

@@ -474,6 +474,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function NERSAH() {
 	var defaultHandler = _httpStatusCode2.default,
 	    promises = [],
+	    STORE = {},
 	    defaultConfig = void 0,
 	    nersahTagName = void 0,
 
@@ -557,7 +558,6 @@ function NERSAH() {
 		promises.push(_promise);
 	},
 	    handleDefault = function handleDefault(promise) {
-
 		promise.xhr.onload = function () {
 			var statusCode = promise.xhr.status,
 			    callbackHandler = defaultHandler[statusCode];
@@ -566,7 +566,8 @@ function NERSAH() {
 				callbackHandler.callback();
 			}
 		};
-	};
+	},
+	    storeRequest = function storeRequest(tag, request) {};
 
 	return {
 
@@ -598,7 +599,7 @@ function NERSAH() {
 				return _utilities2.default.includeArray(tags, xhrObj.xhr.tag);
 			});
 
-			return _promises.length ? handleMultiPromise(_promises) : null;
+			// return (_promises.length) ? handleMultiPromise(_promises) : null;
 		},
 		/**
    * set default setting for ajax request
@@ -1322,7 +1323,7 @@ httpOption.prototype.isValid = function () {
 	return true;
 };
 httpOption.prototype.getUrl = function () {
-	return this.url.split('')[0] === '~' ? this.urlBase + this.urlPrefix + '/' + this.url.slice(1, this.url.length) + this.urlSuffix : this.url;
+	return this.url.split('')[0] === '~' ? this.urlBase + (this.urlPrefix && this.urlPrefix != '' ? this.urlPrefix + '/a' : '') + this.url.slice(1, this.url.length) + this.urlSuffix : this.url;
 };
 httpOption.prototype.getData = function () {
 

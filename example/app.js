@@ -11,17 +11,10 @@ var print = {
 		div.innerHTML = ' -> '+text;
 
 		ele.appendChild( div );
-
-		//console.log('w:', text);
+		print.log(text);
 	},
 	log: function(text){
-		var ele = document.getElementById('log');
-
-		var div = document.createElement('div');
-		div.innerHTML = ' -> '+text;
-
-		ele.appendChild( div );
-
-		//console.log('l:', text);
+		var ele = document.getElementById('main-log');
+		ele.innerHTML = ' -> '+text + '<br />' + ele.innerHTML;
 	}
 };

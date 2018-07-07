@@ -249,7 +249,13 @@ httpOption.prototype.isValid = function () {
 	return true;
 };
 httpOption.prototype.getUrl = function () {
-	return this.url.split('')[0] === '~' ? (this.urlBase + this.urlPrefix + '/' + this.url.slice(1,this.url.length) + this.urlSuffix) : this.url;
+	return this.url.split('')[0] === '~' 
+		? (
+				this.urlBase + 
+				( (this.urlPrefix && this.urlPrefix != '') ? (this.urlPrefix + '/a') : '' ) + 
+				this.url.slice(1,this.url.length) + this.urlSuffix
+		  ) 
+		: this.url;
 };
 httpOption.prototype.getData = function () {
 

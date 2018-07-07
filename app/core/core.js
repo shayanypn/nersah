@@ -9,6 +9,7 @@ import Promise from './../helpers/promise';
 export default function NERSAH() {
 	let defaultHandler = httpStatusCode,
 	promises = [],
+	STORE = {},
 	defaultConfig,
 	nersahTagName,
 	/**
@@ -91,7 +92,6 @@ export default function NERSAH() {
 	},
 
 	handleDefault = function (promise) {
-
 		promise.xhr.onload = function () {
 			var statusCode = promise.xhr.status,
 			callbackHandler = defaultHandler[ statusCode ];
@@ -100,6 +100,9 @@ export default function NERSAH() {
 				callbackHandler.callback();
 			}
 		};
+	},
+
+	storeRequest = (tag,request) => {
 	};
 
 	return {
@@ -130,7 +133,7 @@ export default function NERSAH() {
 				return utils.includeArray(tags, xhrObj.xhr.tag);
 			});
 
-			return (_promises.length) ? handleMultiPromise(_promises) : null;
+			// return (_promises.length) ? handleMultiPromise(_promises) : null;
 		},
 		/**
 		 * set default setting for ajax request
