@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Example One</title>
-<link rel="stylesheet" href="bootstrap.min.css" crossorigin="anonymous" />
-
+	<title>Example One</title>
+	<link rel="stylesheet" href="bootstrap.min.css" crossorigin="anonymous" />
+	<style type="text/css">
+		.card{
+			margin-bottom: 20px;
+		}
+	</style>
 </head>
 <body>
 
@@ -52,23 +56,25 @@
 					<div class="clearfix"></div>
 				</div>
 			</div>
+
+			<div class="card">
+				<div class="card-header">
+					Simple Taging
+					<button id="btn-simple-taging" class="btn btn-sm btn-primary float-right">Call</button>
+				</div>
+				<div class="card-body">
+					<div class="row">
+						<div class="col-xs-6"><pre></pre></div>
+						<div class="col-xs-6"><div id="log-simple-taging"></div></div>
+					</div>
+					<div class="clearfix"></div>
+				</div>
+			</div>
+
 		</div>
 		<div class="col-sm-4">
 			<div class="well well-xs" id="main-log">
 				<br />
-			</div>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-md-4">
-			<div class="card">
-				<div class="card-header">
-					Taging
-					<button id="btn-simple-tag" class="btn btn-sm btn-primary float-right">Call</button>
-				</div>
-				<div class="card-body">
-					<div id="log-simple-tag"></div>
-				</div>
 			</div>
 		</div>
 	</div>
@@ -107,17 +113,17 @@ nersah.setDefault(
 		}
 	},
 	{
-	200: function(http){
-		// print.log('GLOBAL::200 ');
-		print.write('log-simple-get','------ GLOBAL:200 ------');
-	},
-	400: function(http){
-		print.log('GLOBAL::400 ');
-	},
-	500: function(http){
-		print.log('GLOBAL::500 ');
+		200: function(http){
+			print.write('log-simple-get','------ GLOBAL:200 ------');
+		},
+		400: function(http){
+			print.log('GLOBAL::400 ');
+		},
+		500: function(http){
+			print.log('GLOBAL::500 ');
+		}
 	}
-});
+);
 
 
 
@@ -131,17 +137,20 @@ document.getElementById('btn-simple-get')
 .addEventListener('click', function(){
 	document.getElementById('log-simple-get').innerHTML = ' ';
 	print.write('log-simple-get','------ start ------');
+
+
 	nersah
-	// .setTag('tag1')
 	.get('~api.php')
 	.then(function(response, httpResponse){
 
 		print.write('log-simple-get','Request Response is here');
 	}, function(){
 		print.write('log-simple-get','fail');
-	}).then(function(){
+	})
+	.then(function(){
 		print.write('log-simple-get','------ end ------');	
 	})
+
 });
 
 
@@ -187,28 +196,31 @@ document.getElementById('btn-simple-put')
 /***********************************************
  * SIMPLE Tag
  */
-// document.getElementById('btn-simple-tag')
-// .addEventListener('click', function(){
-// 	print.write('log-simple-tag','------ start ------');
-// 	nersah.tag('my-tag', function(){
-// 		console.log('tag success');
-// 	}, function(){
-// 		console.log('tag fail');
-// 	});
+document.getElementById('btn-simple-taging')
+.addEventListener('click', function(){
+	
 
+	print.write('log-simple-taging','------ start ------');
+	
+	nersah
+	.tag('my-tag', function(){
+		console.log('tag success');
+	}, function(){
+		console.log('tag fail');
+	});
 
-// 	nersah
-// 	.setTag('my-tag')
-// 	.get('~api.php')
-// 	.then(function(response, httpResponse){
+	nersah
+	.setTag('my-tag')
+	.get('~api.php')
+	.then(function(response, httpResponse){
 
-// 		print.write('log-simple-tag','Request Response is here');
-// 		print.write('log-simple-tag','------ end ------');
-// 	}, function(){
-// 		print.write('log-simple-tag','fail');
-// 		print.write('log-simple-tag','------ end ------');
-// 	});
-// });
+		print.write('log-simple-taging','Request Response is here');
+		print.write('log-simple-taging','------ end ------');
+	}, function(){
+		print.write('log-simple-taging','fail');
+		print.write('log-simple-taging','------ end ------');
+	});
+});
 
 
 

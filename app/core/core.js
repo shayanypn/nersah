@@ -6,10 +6,11 @@ import xhrAdapter from './../adapters/xhr';
 import HttpOption from './../core/httpOption';
 import Promise from './../helpers/promise';
 
+const STORE = {};
+
 export default function NERSAH() {
 	let defaultHandler = httpStatusCode,
 	promises = [],
-	STORE = {},
 	defaultConfig,
 	nersahTagName,
 	/**
@@ -40,7 +41,7 @@ export default function NERSAH() {
 	 * @param  {Promise-Array} _promises
 	 * @return {Promise}       [description]
 	 */
-	handleMultiPromise = function (promises) {
+	handleMultiPromise = promises => {
 		return new Promise(function (resolve, reject, handler) {
 
 			let successPromises = [],
@@ -58,7 +59,7 @@ export default function NERSAH() {
 					}
 				}
 			},
-			didRequestFail = function (item) {
+			didRequestFail = item => {
 				if (failPromises.indexOf(item) === -1) {
 					failPromises.push(item);
 					if (
@@ -87,13 +88,13 @@ export default function NERSAH() {
 	 * Promise Collector
 	 * @param  {Promise} _promise [description]
 	 */
-	handlePromise = function (_promise) {
+	handlePromise = _promise => {
 		promises.push(_promise);
 	},
 
-	handleDefault = function (promise) {
+	defaultHttpHandler = promise => {
 		promise.xhr.onload = function () {
-			var statusCode = promise.xhr.status,
+			let statusCode = promise.xhr.status,
 			callbackHandler = defaultHandler[ statusCode ];
 
 			if (callbackHandler && typeof callbackHandler.callback === 'function') {
@@ -102,8 +103,13 @@ export default function NERSAH() {
 		};
 	},
 
-	storeRequest = (tag,request) => {
+	storeRequest = (tag, request) => {
+
+		STORE[tag] ? true : STORE[tag] = { };
+
+		console.log('storeRequest', tag, request);
 	};
+
 
 	return {
 
@@ -133,7 +139,7 @@ export default function NERSAH() {
 				return utils.includeArray(tags, xhrObj.xhr.tag);
 			});
 
-			// return (_promises.length) ? handleMultiPromise(_promises) : null;
+			return (_promises.length) ? handleMultiPromise(_promises) : null;
 		},
 		/**
 		 * set default setting for ajax request
@@ -168,9 +174,11 @@ export default function NERSAH() {
 				defaultHandler
 			);
 
+			storeRequest(nersahTagName, xhrObj);
+
 			handlePromise(xhrObj);
 
-			handleDefault(xhrObj);
+			defaultHttpHandler(xhrObj);
 
 			return xhrObj.promise;
 		},

@@ -5,7 +5,7 @@
   "main": "dist/nersah.js",
   "scripts": {
     "build": "webpack --env build",
-    "dev": "node server/server.js | webpack --progress --colors --watch --env dev",
+    "dev": "webpack --progress --colors --watch --env dev",
     "test": "mocha --compilers js:babel-core/register --colors ./test/*.spec.js",
     "test:watch": "mocha --compilers js:babel-core/register --colors -w ./test/*.spec.js"
   },
