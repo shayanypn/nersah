@@ -5,7 +5,7 @@ $_code = isset($_GET['code']) ? $_GET['code'] : 200;
 if ( $_code ) {
 	http_response_code($_code);
 }
-sleep(1);
+sleep(3);
 
 // Allow from any origin
 if (isset($_SERVER['HTTP_ORIGIN'])) {

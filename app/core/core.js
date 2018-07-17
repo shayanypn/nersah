@@ -6,13 +6,13 @@ import xhrAdapter from './../adapters/xhr';
 import HttpOption from './../core/httpOption';
 import Promise from './../helpers/promise';
 
-const STORE = {};
-
+const TagPromiseStore = [];
 export default function NERSAH() {
 	let defaultHandler = httpStatusCode,
 	promises = [],
 	defaultConfig,
 	nersahTagName,
+	nersahTagSequence,
 	/**
 	 * [buildHttpOption description]
 	 * @param  {[type]} method      [description]
@@ -104,10 +104,84 @@ export default function NERSAH() {
 	},
 
 	storeRequest = (tag, request) => {
+		const uuid = (new Date()).getTime();
 
-		STORE[tag] ? true : STORE[tag] = { };
+		const isExist = TagPromiseStore.find( x => x.tag === tag);
+		if (!isExist) {
+			TagPromiseStore.push({
+				tag: tag,
+				promises: {}
+			});
+		}
 
-		console.log('storeRequest', tag, request);
+		// [1,2,3,4,5].reduce((a,b)=>{
+		// 	console.log(a,b);
+
+		// 	return a+b;
+		// })
+
+
+
+
+		TagPromiseStore.map(x => {
+			if (x.tag === tag) {
+				x.promises[uuid] = request;
+			}
+			return x;
+		})
+	},
+	HandleTagPromises = (tags, initial) =>{
+		return new Promise( (resolve, reject, handler) => {
+			ObserveTagPromise(tags, initial, resolve, reject, handler);
+		});
+	},
+	ObserveTagPromise = (tags, initial, resolve, reject, handler) => {
+
+		const OnPromiseLoaded = () => {
+			if (promiseStatic.total === promiseStatic.success)
+				resolve();
+			else if (promiseStatic.total === promiseStatic.success + promiseStatic.fail )
+				reject();
+		},
+		promiseStatic = {
+			success: 0,
+			fail: 0,
+			pending: 0,
+			total: 0,
+		},
+		tagPromiseStore = TagPromiseStore.filter(x => tags.indexOf(x.tag) !== -1 );
+
+		nersahTagSequence = !initial ? nersahTagSequence : 0;
+
+		if (!tagPromiseStore && tagPromiseStore.length) {
+			return false;
+		}
+
+		tagPromiseStore.forEach( promise => {
+			Object.keys(promise.promises).forEach( uuid => {
+				promiseStatic.total++;
+				promise.promises[uuid].xhr.onload = function (xhr) {
+					
+					const statusCode = xhr.originalTarget.status;
+
+					if (statusCode == 0) 
+						promiseStatic.pending++;
+					else if (statusCode >= 200 && statusCode < 300) 
+						promiseStatic.success++;
+					else 
+						promiseStatic.fail++;
+
+					OnPromiseLoaded();
+				};
+			});
+		});
+
+
+		if (nersahTagSequence > 10) { return; }
+		nersahTagSequence++;
+		setTimeout(function(){
+			ObserveTagPromise(tags, false, resolve, reject, handler);
+		}, 1000);
 	};
 
 
@@ -129,17 +203,11 @@ export default function NERSAH() {
 		 * @return {promise}     	promise of http calls with specify tag name
 		 */
 		tag: function (tag) {
-			var _promises;
-
 			if (!utils.isArray(tag) && !utils.isString(tag)) {return null;}
 
 			let tags = utils.isArray(tag) ? tag : tag.split(',');
 
-			_promises = utils.filter(promises, function (xhrObj) {
-				return utils.includeArray(tags, xhrObj.xhr.tag);
-			});
-
-			return (_promises.length) ? handleMultiPromise(_promises) : null;
+			return HandleTagPromises(tags, true);
 		},
 		/**
 		 * set default setting for ajax request
@@ -174,11 +242,13 @@ export default function NERSAH() {
 				defaultHandler
 			);
 
-			storeRequest(nersahTagName, xhrObj);
-
-			handlePromise(xhrObj);
+			if (nersahTagName) {
+				storeRequest(nersahTagName, xhrObj);
+			}
 
 			defaultHttpHandler(xhrObj);
+
+			handlePromise(xhrObj);
 
 			return xhrObj.promise;
 		},

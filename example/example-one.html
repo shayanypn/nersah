@@ -203,11 +203,18 @@ document.getElementById('btn-simple-taging')
 	print.write('log-simple-taging','------ start ------');
 	
 	nersah
-	.tag('my-tag', function(){
+	.tag('my-tag')
+	.then(function(response, httpResponse){
 		console.log('tag success');
 	}, function(){
 		console.log('tag fail');
 	});
+
+	// , function(){
+	// 	console.log('tag success');
+	// }, function(){
+	// 	console.log('tag fail');
+	// });
 
 	nersah
 	.setTag('my-tag')

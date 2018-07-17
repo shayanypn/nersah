@@ -471,13 +471,13 @@ var _promise3 = _interopRequireDefault(_promise2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var STORE = {};
-
+var TagPromiseStore = [];
 function NERSAH() {
 	var defaultHandler = _httpStatusCode2.default,
 	    promises = [],
 	    defaultConfig = void 0,
 	    nersahTagName = void 0,
+	    nersahTagSequence = void 0,
 
 	/**
   * [buildHttpOption description]
@@ -569,10 +569,79 @@ function NERSAH() {
 		};
 	},
 	    storeRequest = function storeRequest(tag, request) {
+		var uuid = new Date().getTime();
 
-		STORE[tag] ? true : STORE[tag] = {};
+		var isExist = TagPromiseStore.find(function (x) {
+			return x.tag === tag;
+		});
+		if (!isExist) {
+			TagPromiseStore.push({
+				tag: tag,
+				promises: {}
+			});
+		}
 
-		console.log('storeRequest', tag, request);
+		// [1,2,3,4,5].reduce((a,b)=>{
+		// 	console.log(a,b);
+
+		// 	return a+b;
+		// })
+
+
+		TagPromiseStore.map(function (x) {
+			if (x.tag === tag) {
+				x.promises[uuid] = request;
+			}
+			return x;
+		});
+	},
+	    HandleTagPromises = function HandleTagPromises(tags, initial) {
+		return new _promise3.default(function (resolve, reject, handler) {
+			ObserveTagPromise(tags, initial, resolve, reject, handler);
+		});
+	},
+	    ObserveTagPromise = function ObserveTagPromise(tags, initial, resolve, reject, handler) {
+
+		var OnPromiseLoaded = function OnPromiseLoaded() {
+			if (promiseStatic.total === promiseStatic.success) resolve();else if (promiseStatic.total === promiseStatic.success + promiseStatic.fail) reject();
+		},
+		    promiseStatic = {
+			success: 0,
+			fail: 0,
+			pending: 0,
+			total: 0
+		},
+		    tagPromiseStore = TagPromiseStore.filter(function (x) {
+			return tags.indexOf(x.tag) !== -1;
+		});
+
+		nersahTagSequence = !initial ? nersahTagSequence : 0;
+
+		if (!tagPromiseStore && tagPromiseStore.length) {
+			return false;
+		}
+
+		tagPromiseStore.forEach(function (promise) {
+			Object.keys(promise.promises).forEach(function (uuid) {
+				promiseStatic.total++;
+				promise.promises[uuid].xhr.onload = function (xhr) {
+
+					var statusCode = xhr.originalTarget.status;
+
+					if (statusCode == 0) promiseStatic.pending++;else if (statusCode >= 200 && statusCode < 300) promiseStatic.success++;else promiseStatic.fail++;
+
+					OnPromiseLoaded();
+				};
+			});
+		});
+
+		if (nersahTagSequence > 10) {
+			return;
+		}
+		nersahTagSequence++;
+		setTimeout(function () {
+			ObserveTagPromise(tags, false, resolve, reject, handler);
+		}, 1000);
 	};
 
 	return {
@@ -593,19 +662,13 @@ function NERSAH() {
    * @return {promise}     	promise of http calls with specify tag name
    */
 		tag: function tag(_tag) {
-			var _promises;
-
 			if (!_utilities2.default.isArray(_tag) && !_utilities2.default.isString(_tag)) {
 				return null;
 			}
 
 			var tags = _utilities2.default.isArray(_tag) ? _tag : _tag.split(',');
 
-			_promises = _utilities2.default.filter(promises, function (xhrObj) {
-				return _utilities2.default.includeArray(tags, xhrObj.xhr.tag);
-			});
-
-			return _promises.length ? handleMultiPromise(_promises) : null;
+			return HandleTagPromises(tags, true);
 		},
 		/**
    * set default setting for ajax request
@@ -637,11 +700,13 @@ function NERSAH() {
 		get: function get(config, useDefault) {
 			var xhrObj = (0, _xhr2.default)(buildHttpOption('GET', config, useDefault), defaultHandler);
 
-			storeRequest(nersahTagName, xhrObj);
-
-			handlePromise(xhrObj);
+			if (nersahTagName) {
+				storeRequest(nersahTagName, xhrObj);
+			}
 
 			defaultHttpHandler(xhrObj);
+
+			handlePromise(xhrObj);
 
 			return xhrObj.promise;
 		},
