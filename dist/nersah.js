@@ -465,19 +465,17 @@ var _httpOption = __webpack_require__(10);
 
 var _httpOption2 = _interopRequireDefault(_httpOption);
 
-var _promise2 = __webpack_require__(1);
+var _TagPromiseHandler = __webpack_require__(11);
 
-var _promise3 = _interopRequireDefault(_promise2);
+var _TagPromiseHandler2 = _interopRequireDefault(_TagPromiseHandler);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var TagPromiseStore = [];
 function NERSAH() {
 	var defaultHandler = _httpStatusCode2.default,
-	    promises = [],
 	    defaultConfig = void 0,
 	    nersahTagName = void 0,
-	    nersahTagSequence = void 0,
+	    tagPromiseHandler = new _TagPromiseHandler2.default(),
 
 	/**
   * [buildHttpOption description]
@@ -502,62 +500,6 @@ function NERSAH() {
 
 		return option;
 	},
-
-	/**
-  * Multi Promise Handler
-  * @param  {Promise-Array} _promises
-  * @return {Promise}       [description]
-  */
-	handleMultiPromise = function handleMultiPromise(promises) {
-		return new _promise3.default(function (resolve, reject, handler) {
-
-			var successPromises = [],
-			    failPromises = [],
-			    mapRequests = function mapRequests() {
-				return promises.map(function (item) {
-					return item.promise;
-				});
-			},
-			    didRequestSuccess = function didRequestSuccess(item) {
-				if (successPromises.indexOf(item) === -1) {
-					successPromises.push(item);
-					if (successPromises.length === promises.length) {
-						setTimeout(function () {
-							resolve(mapRequests());
-						}, 10);
-					}
-				}
-			},
-			    didRequestFail = function didRequestFail(item) {
-				if (failPromises.indexOf(item) === -1) {
-					failPromises.push(item);
-					if (failPromises.length !== 0 && failPromises.length + successPromises.length === promises.length) {
-						setTimeout(function () {
-							reject(mapRequests());
-						}, 10);
-					}
-				}
-			};
-
-			promises.forEach(function (promiseObj, index) {
-				promiseObj.xhr.onload = function () {
-					if (promiseObj.xhr.status >= 200 && promiseObj.xhr.status < 300) {
-						didRequestSuccess(index);
-					} else {
-						didRequestFail(index);
-					}
-				};
-			});
-		});
-	},
-
-	/**
-  * Promise Collector
-  * @param  {Promise} _promise [description]
-  */
-	handlePromise = function handlePromise(_promise) {
-		promises.push(_promise);
-	},
 	    defaultHttpHandler = function defaultHttpHandler(promise) {
 		promise.xhr.onload = function () {
 			var statusCode = promise.xhr.status,
@@ -567,81 +509,6 @@ function NERSAH() {
 				callbackHandler.callback();
 			}
 		};
-	},
-	    storeRequest = function storeRequest(tag, request) {
-		var uuid = new Date().getTime();
-
-		var isExist = TagPromiseStore.find(function (x) {
-			return x.tag === tag;
-		});
-		if (!isExist) {
-			TagPromiseStore.push({
-				tag: tag,
-				promises: {}
-			});
-		}
-
-		// [1,2,3,4,5].reduce((a,b)=>{
-		// 	console.log(a,b);
-
-		// 	return a+b;
-		// })
-
-
-		TagPromiseStore.map(function (x) {
-			if (x.tag === tag) {
-				x.promises[uuid] = request;
-			}
-			return x;
-		});
-	},
-	    HandleTagPromises = function HandleTagPromises(tags, initial) {
-		return new _promise3.default(function (resolve, reject, handler) {
-			ObserveTagPromise(tags, initial, resolve, reject, handler);
-		});
-	},
-	    ObserveTagPromise = function ObserveTagPromise(tags, initial, resolve, reject, handler) {
-
-		var OnPromiseLoaded = function OnPromiseLoaded() {
-			if (promiseStatic.total === promiseStatic.success) resolve();else if (promiseStatic.total === promiseStatic.success + promiseStatic.fail) reject();
-		},
-		    promiseStatic = {
-			success: 0,
-			fail: 0,
-			pending: 0,
-			total: 0
-		},
-		    tagPromiseStore = TagPromiseStore.filter(function (x) {
-			return tags.indexOf(x.tag) !== -1;
-		});
-
-		nersahTagSequence = !initial ? nersahTagSequence : 0;
-
-		if (!tagPromiseStore && tagPromiseStore.length) {
-			return false;
-		}
-
-		tagPromiseStore.forEach(function (promise) {
-			Object.keys(promise.promises).forEach(function (uuid) {
-				promiseStatic.total++;
-				promise.promises[uuid].xhr.onload = function (xhr) {
-
-					var statusCode = xhr.originalTarget.status;
-
-					if (statusCode == 0) promiseStatic.pending++;else if (statusCode >= 200 && statusCode < 300) promiseStatic.success++;else promiseStatic.fail++;
-
-					OnPromiseLoaded();
-				};
-			});
-		});
-
-		if (nersahTagSequence > 10) {
-			return;
-		}
-		nersahTagSequence++;
-		setTimeout(function () {
-			ObserveTagPromise(tags, false, resolve, reject, handler);
-		}, 1000);
 	};
 
 	return {
@@ -665,11 +532,11 @@ function NERSAH() {
 			if (!_utilities2.default.isArray(_tag) && !_utilities2.default.isString(_tag)) {
 				return null;
 			}
-
 			var tags = _utilities2.default.isArray(_tag) ? _tag : _tag.split(',');
 
-			return HandleTagPromises(tags, true);
+			return tagPromiseHandler.handle(tags, true);
 		},
+
 		/**
    * set default setting for ajax request
    * @param  {Object} options	 	HTTP Request Options
@@ -701,12 +568,10 @@ function NERSAH() {
 			var xhrObj = (0, _xhr2.default)(buildHttpOption('GET', config, useDefault), defaultHandler);
 
 			if (nersahTagName) {
-				storeRequest(nersahTagName, xhrObj);
+				tagPromiseHandler.add(nersahTagName, xhrObj);
 			}
 
 			defaultHttpHandler(xhrObj);
-
-			handlePromise(xhrObj);
 
 			return xhrObj.promise;
 		},
@@ -719,7 +584,12 @@ function NERSAH() {
 		post: function post(config, useDefault) {
 			var xhrObj = (0, _xhr2.default)(buildHttpOption('POST', config, useDefault), defaultHandler);
 
-			handlePromise(xhrObj);
+			if (nersahTagName) {
+				tagPromiseHandler.add(nersahTagName, xhrObj);
+			}
+
+			defaultHttpHandler(xhrObj);
+
 			return xhrObj.promise;
 		},
 
@@ -731,7 +601,12 @@ function NERSAH() {
 		patch: function patch(config, useDefault) {
 			var xhrObj = (0, _xhr2.default)(buildHttpOption('PATCH', config, useDefault), defaultHandler);
 
-			handlePromise(xhrObj);
+			if (nersahTagName) {
+				tagPromiseHandler.add(nersahTagName, xhrObj);
+			}
+
+			defaultHttpHandler(xhrObj);
+
 			return xhrObj.promise;
 		},
 
@@ -743,7 +618,12 @@ function NERSAH() {
 		put: function put(config, useDefault) {
 			var xhrObj = (0, _xhr2.default)(buildHttpOption('PUT', config, useDefault), defaultHandler);
 
-			handlePromise(xhrObj);
+			if (nersahTagName) {
+				tagPromiseHandler.add(nersahTagName, xhrObj);
+			}
+
+			defaultHttpHandler(xhrObj);
+
 			return xhrObj.promise;
 		}
 
@@ -1431,6 +1311,131 @@ httpOption.prototype.getHeaders = function () {
 	return [];
 };
 module.exports = httpOption;
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _promise = __webpack_require__(1);
+
+var _promise2 = _interopRequireDefault(_promise);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * [TagPromiseHandler description]
+ */
+var TagPromiseHandler = function TagPromiseHandler() {
+	this.store = [];
+	this.sequence;
+};
+
+/**
+ * [add description]
+ * @param {[type]} tag     [description]
+ * @param {[type]} request [description]
+ */
+TagPromiseHandler.prototype.add = function (tag, request) {
+	var uuid = new Date().getTime();
+	var isExist = this.store.find(function (x) {
+		return x.tag === tag;
+	});
+
+	if (!isExist) {
+		this.store.push({
+			tag: tag,
+			promises: {}
+		});
+	}
+
+	this.store.map(function (x) {
+		if (x.tag === tag) {
+			x.promises[uuid] = request;
+		}
+		return x;
+	});
+};
+/**
+ * [handle description]
+ * @param  {[type]} tags    [description]
+ * @param  {[type]} initial [description]
+ * @return {[type]}         [description]
+ */
+TagPromiseHandler.prototype.handle = function (tags, initial) {
+	var self = this;
+
+	return new _promise2.default(function (resolve, reject, handler) {
+		self.observe(tags, initial, resolve, reject, handler);
+	});
+};
+/**
+ * [observe description]
+ * @param  {[type]} tags    [description]
+ * @param  {[type]} initial [description]
+ * @param  {[type]} resolve [description]
+ * @param  {[type]} reject  [description]
+ * @param  {[type]} handler [description]
+ * @return {[type]}         [description]
+ */
+TagPromiseHandler.prototype.observe = function (tags, initial, resolve, reject, handler) {
+	var self = this,
+	    promiseStatic = {
+		success: 0,
+		fail: 0,
+		pending: 0,
+		total: 0
+	},
+	    OnPromiseLoaded = function OnPromiseLoaded() {
+		if (promiseStatic.total === promiseStatic.success) {
+			resolve();
+		} else if (promiseStatic.total === promiseStatic.success + promiseStatic.fail) {
+			reject();
+		}
+	},
+	    tagPromiseStore = this.store.filter(function (x) {
+		return tags.indexOf(x.tag) !== -1;
+	});
+
+	this.sequence = !initial ? this.sequence : 0;
+
+	if (!tagPromiseStore && tagPromiseStore.length) {
+		return false;
+	}
+
+	tagPromiseStore.forEach(function (promise) {
+		Object.keys(promise.promises).forEach(function (uuid) {
+			promiseStatic.total++;
+			promise.promises[uuid].xhr.onload = function (xhr) {
+				var statusCode = xhr.target.status;
+
+				if (statusCode === 0) {
+					promiseStatic.pending++;
+				} else if (statusCode >= 200 && statusCode < 300) {
+					promiseStatic.success++;
+				} else {
+					promiseStatic.fail++;
+				}
+
+				OnPromiseLoaded();
+			};
+		});
+	});
+
+	if (this.sequence > 10) {
+		return true;
+	}
+	this.sequence++;
+	setTimeout(function () {
+		self.observe(tags, false, resolve, reject, handler);
+	}, 1000);
+
+	return true;
+};
+
+module.exports = TagPromiseHandler;
 
 /***/ })
 /******/ ]);
