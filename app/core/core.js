@@ -5,6 +5,7 @@ import utils from './../utilities';
 import xhrAdapter from './../adapters/xhr';
 import HttpOption from './../core/httpOption';
 import Promise from './../helpers/promise';
+import TagPromiseHandler from './../adapters/TagPromiseHandler';
 
 const TagPromiseStore = [];
 export default function NERSAH() {
@@ -36,61 +37,6 @@ export default function NERSAH() {
 
 		return option;
 	},
-	/**
-	 * Multi Promise Handler
-	 * @param  {Promise-Array} _promises
-	 * @return {Promise}       [description]
-	 */
-	handleMultiPromise = promises => {
-		return new Promise(function (resolve, reject, handler) {
-
-			let successPromises = [],
-			failPromises = [],
-			mapRequests = function () {
-				return promises.map(function (item) { return item.promise; });
-			},
-			didRequestSuccess = function (item) {
-				if (successPromises.indexOf(item) === -1) {
-					successPromises.push(item);
-					if (successPromises.length === promises.length) {
-						setTimeout(function () {
-							resolve(mapRequests());
-						}, 10);
-					}
-				}
-			},
-			didRequestFail = item => {
-				if (failPromises.indexOf(item) === -1) {
-					failPromises.push(item);
-					if (
-						failPromises.length !== 0 &&
-						(failPromises.length + successPromises.length) === promises.length
-						) {
-						setTimeout(function () {
-							reject(mapRequests());
-						}, 10);
-					}
-				}
-			};
-
-			promises.forEach(function (promiseObj, index) {
-				promiseObj.xhr.onload = function () {
-					if (promiseObj.xhr.status >= 200 && promiseObj.xhr.status < 300) {
-						didRequestSuccess(index);
-					} else {
-						didRequestFail(index);
-					}
-				};
-			});
-		});
-	},
-	/**
-	 * Promise Collector
-	 * @param  {Promise} _promise [description]
-	 */
-	handlePromise = _promise => {
-		promises.push(_promise);
-	},
 
 	defaultHttpHandler = promise => {
 		promise.xhr.onload = function () {
@@ -113,15 +59,6 @@ export default function NERSAH() {
 				promises: {}
 			});
 		}
-
-		// [1,2,3,4,5].reduce((a,b)=>{
-		// 	console.log(a,b);
-
-		// 	return a+b;
-		// })
-
-
-
 
 		TagPromiseStore.map(x => {
 			if (x.tag === tag) {
@@ -209,6 +146,7 @@ export default function NERSAH() {
 
 			return HandleTagPromises(tags, true);
 		},
+
 		/**
 		 * set default setting for ajax request
 		 * @param  {Object} options	 	HTTP Request Options
@@ -248,8 +186,6 @@ export default function NERSAH() {
 
 			defaultHttpHandler(xhrObj);
 
-			handlePromise(xhrObj);
-
 			return xhrObj.promise;
 		},
 
@@ -264,7 +200,12 @@ export default function NERSAH() {
 				defaultHandler
 			);
 
-			handlePromise(xhrObj);
+			if (nersahTagName) {
+				storeRequest(nersahTagName, xhrObj);
+			}
+
+			defaultHttpHandler(xhrObj);
+
 			return xhrObj.promise;
 		},
 
@@ -279,7 +220,12 @@ export default function NERSAH() {
 				defaultHandler
 			);
 
-			handlePromise(xhrObj);
+			if (nersahTagName) {
+				storeRequest(nersahTagName, xhrObj);
+			}
+
+			defaultHttpHandler(xhrObj);
+
 			return xhrObj.promise;
 		},
 
@@ -294,7 +240,12 @@ export default function NERSAH() {
 				defaultHandler
 			);
 
-			handlePromise(xhrObj);
+			if (nersahTagName) {
+				storeRequest(nersahTagName, xhrObj);
+			}
+
+			defaultHttpHandler(xhrObj);
+
 			return xhrObj.promise;
 		}
 
