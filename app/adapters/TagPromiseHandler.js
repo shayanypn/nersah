@@ -2,7 +2,8 @@
 import Promise from './../helpers/promise';
 
 /**
- * [TagPromiseHandler description]
+ * TagPromiseHandler
+ * hanle ajax promises which has special tag
  */
 const TagPromiseHandler = function () {
 	this.store = [];
