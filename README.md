@@ -16,3 +16,7 @@ Advance promise based HTTP client for the browser.
 - Powerfull request handler
 - Taging Request
 - Powerfull bulk request handling
+
+
+
+ under develope
