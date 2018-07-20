@@ -19,4 +19,4 @@ Advance promise based HTTP client for the browser.
 
 
 
- under develope
+ Under develope
