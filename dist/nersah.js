@@ -269,10 +269,445 @@ module.exports = {
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
+
+
+/**
+ * HTTP Response Object
+ */
+
+var httpResponse = function httpResponse() {
+	/**
+  * XHR state
+  * @jqXHR.readyState
+  * 0   UNSENT  : The request is not initialized | (uninitialized) or (request not initialized)
+  * 1   OPENED  : The request has been set up | (loading) or (server connection established)
+  * 2   HEADERS_RECEIVED : The request has been sent | (loaded) or (request received)
+  * 3   LOADING : The request is in process | (interactive) or (processing request)
+  * 4   DONE    : The request is complete | (complete) or (request finished and response is ready)
+ */
+	this.readyState;
+
+	/*
+ * Get http request, response in to wanted format
+ * "success", "notmodified", "nocontent", "error", "timeout", "abort", "parsererror"
+ */
+	this.status;
+
+	/**
+  * Http detail
+  */
+	this.statusCode;
+	this.statusText;
+
+	this.rawResponse;
+	this.response;
+};
+
+/**
+ * set response
+ */
+httpResponse.prototype.setResponse = function () {
+	var httpRequest = arguments[1],
+	    httpOption = arguments[0];
+
+	this.rawResponse = httpRequest.response;
+	if (httpOption.dataType === 'html') {
+		this.response = httpRequest.responseText;
+		this.status = 'success';
+		return;
+	}
+	if (httpOption.dataType === 'xml') {
+		this.response = httpRequest.responseXML;
+		this.status = 'success';
+		return;
+	}
+	if (httpOption.dataType === 'json') {
+		try {
+			this.response = window.JSON.parse(httpRequest.responseText);
+			this.status = 'success';
+		} catch (e) {
+			this.response = null;
+			this.status = 'parsererror';
+		}
+	}
+};
+
+/**
+ * Return if response status is SUCCESS or Not
+ * @return {Boolean}
+ */
+httpResponse.prototype.isSuccess = function () {
+	return this.statusCode >= 200 && this.statusCode < 300;
+};
+
+module.exports = httpResponse;
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _core = __webpack_require__(3);
+
+var _core2 = _interopRequireDefault(_core);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var myWindow = typeof window !== 'undefined' ? window : {};
+
+myWindow.nersah = new _core2.default();
+
+module.exports = myWindow.nersah;
+
+module.exports.default = myWindow.nersah;
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+exports.default = NERSAH;
+
+var _httpStatusCode = __webpack_require__(4);
+
+var _httpStatusCode2 = _interopRequireDefault(_httpStatusCode);
+
+var _utilities = __webpack_require__(0);
+
+var _utilities2 = _interopRequireDefault(_utilities);
+
+var _xhr = __webpack_require__(5);
+
+var _xhr2 = _interopRequireDefault(_xhr);
+
+var _httpOption = __webpack_require__(10);
+
+var _httpOption2 = _interopRequireDefault(_httpOption);
+
+var _httpResponse = __webpack_require__(1);
+
+var _httpResponse2 = _interopRequireDefault(_httpResponse);
+
+var _TagPromiseHandler = __webpack_require__(11);
+
+var _TagPromiseHandler2 = _interopRequireDefault(_TagPromiseHandler);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function NERSAH() {
+	var defaultHandler = _httpStatusCode2.default,
+	    defaultConfig = void 0,
+	    nersahTagName = void 0,
+	    tagPromiseHandler = new _TagPromiseHandler2.default(),
+
+	/**
+  * [buildHttpOption description]
+  * @param  {[type]} method      [description]
+  * @param  {[type]} config      [description]
+  * @param  {[type]} use_default [description]
+  * @return {[type]}             [description]
+  */
+	buildHttpOption = function buildHttpOption(method, config, useDefault) {
+		var option = new _httpOption2.default();
+
+		if (nersahTagName) {
+			defaultConfig['tag'] = nersahTagName;
+		}
+
+		if (useDefault !== false) {
+			option.setDefault(defaultConfig);
+		}
+
+		option.method = method;
+		option.extend(config);
+
+		return option;
+	},
+	    defaultHttpHandler = function defaultHttpHandler(promise) {
+		promise.xhr.onload = function () {
+			var XHR = promise.xhr,
+			    response = new _httpResponse2.default(),
+			    callbackHandler = defaultHandler[XHR.status];
+
+			response.statusCode = XHR.status;
+
+			tagPromiseHandler.observe(XHR.tag, response.statusCode, response.isSuccess());
+
+			if (callbackHandler && typeof callbackHandler.callback === 'function') {
+				callbackHandler.callback();
+			}
+		};
+	};
+
+	return {
+
+		/**
+   * specify the http request to a tag
+   * @param  {String} 	tag name
+   * @return {this}
+   */
+		setTag: function setTag(tag) {
+			nersahTagName = tag;
+			return this;
+		},
+
+		/**
+   * get all http request with specify tag
+   * @param  {String|Array} 	tag name or array of tags
+   * @return {promise}     	promise of http calls with specify tag name
+   */
+		tag: function tag(_tag) {
+			if (!_utilities2.default.isArray(_tag) && !_utilities2.default.isString(_tag)) {
+				return null;
+			}
+			return tagPromiseHandler.add(_tag);
+		},
+
+		/**
+   * set default setting for ajax request
+   * @param  {Object} options	 	HTTP Request Options
+   * @param  {Object} hanlders 	HTTP Handler Option
+   */
+		setDefault: function setDefault(options, hanlders) {
+
+			if (options) {
+				defaultConfig = options;
+			}
+
+			if (hanlders) {
+				if ((typeof hanlders === 'undefined' ? 'undefined' : _typeof(hanlders)) === 'object') {
+					defaultHandler = _utilities2.default.extendCallback(defaultHandler, hanlders);
+				} else if (typeof hanlders === 'function') {
+					defaultHandler['default']['callback'] = hanlders;
+				} else {
+					console.error('Wrong ajax callback!');
+				}
+			}
+		},
+
+		/**
+   * HTTP GET Request
+   * @param  {Object} 	HTTP Request Options
+   * @return {Promise}
+   */
+		get: function get(config, useDefault) {
+			var xhrObj = (0, _xhr2.default)(buildHttpOption('GET', config, useDefault), defaultHandler);
+
+			// if (nersahTagName) {
+			// 	tagPromiseHandler.add(nersahTagName, xhrObj);
+			// }
+
+			defaultHttpHandler(xhrObj);
+
+			return xhrObj.promise;
+		},
+
+		/**
+   * HTTP POST Request
+   * @param  {Object} 	HTTP Request Options
+   * @return {Promise}
+   */
+		post: function post(config, useDefault) {
+			var xhrObj = (0, _xhr2.default)(buildHttpOption('POST', config, useDefault), defaultHandler);
+
+			// if (nersahTagName) {
+			// 	tagPromiseHandler.add(nersahTagName, xhrObj);
+			// }
+
+			defaultHttpHandler(xhrObj);
+
+			return xhrObj.promise;
+		},
+
+		/**
+   * HTTP PATCH Request
+   * @param  {Object} 	HTTP Request Options
+   * @return {Promise}
+   */
+		patch: function patch(config, useDefault) {
+			var xhrObj = (0, _xhr2.default)(buildHttpOption('PATCH', config, useDefault), defaultHandler);
+
+			// if (nersahTagName) {
+			// 	tagPromiseHandler.add(nersahTagName, xhrObj);
+			// }
+
+			defaultHttpHandler(xhrObj);
+
+			return xhrObj.promise;
+		},
+
+		/**
+   * HTTP PUT Request
+   * @param  {Object} 	HTTP Request Options
+   * @return {Promise}
+   */
+		put: function put(config, useDefault) {
+			var xhrObj = (0, _xhr2.default)(buildHttpOption('PUT', config, useDefault), defaultHandler);
+
+			// if (nersahTagName) {
+			// 	tagPromiseHandler.add(nersahTagName, xhrObj);
+			// }
+
+			defaultHttpHandler(xhrObj);
+
+			return xhrObj.promise;
+		}
+
+	};
+};
+module.exports = exports['default'];
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = {
+	0: { status: '' }, /* loading,error,abort */
+	/* SUCCESS */
+	200: { status: 'Ok' },
+	201: { status: 'Created' },
+	202: { status: 'Accepted' },
+	203: { status: 'Non-Authoritative Information' },
+	204: { status: 'No Contant' },
+	205: { status: 'Reset Contant' },
+	206: { status: 'Partial Content' },
+	207: { status: 'Multi-status' },
+	208: { status: 'Already Reported' },
+	226: { status: 'IM Used' },
+	/* REDIRECT */
+	/* CLIENT ERROR */
+	400: { status: 'Bad Request' },
+	401: { status: 'Unauthorized' },
+	402: { status: 'Payment Required' },
+	403: { status: 'Forbidden' },
+	404: { status: 'Not Found' },
+	405: { status: 'Method Not Allowed' },
+	406: { status: 'Not Acceptable' },
+	407: { status: 'Proxy Authentication Required' },
+	408: { status: 'Request Time-out' },
+	409: { status: 'Conflict' },
+	410: { status: 'Gone' },
+	411: { status: 'Length Required' },
+	412: { status: 'Precondition Failed' },
+	413: { status: 'Payload Too Large' },
+	414: { status: 'URI Too Long' },
+	415: { status: 'Unsupported Media Type' },
+	416: { status: 'Range Not Satisfiable' },
+	417: { status: 'Expectation Failed' },
+	418: { status: 'I\'m a teapot' },
+	422: { status: 'Misdirected Request' },
+	423: { status: 'Unprocessable Entity' },
+	424: { status: 'Locked' },
+	425: { status: 'Failed Dependency' },
+	426: { status: 'Upgrade Required' },
+	428: { status: 'Precondition Required' },
+	429: { status: 'Too Many Requests' },
+	431: { status: 'Request Header Fields Too Large' },
+	440: { status: 'Login Time-out' },
+	444: { status: 'No Response' },
+	449: { status: 'Retry With' },
+	// 450: ''},
+	451: { status: 'Unavailable For Legal Reasons' },
+	495: { status: 'SSL Certificate Error' },
+	496: { status: 'SSL Certificate Required' },
+	497: { status: 'HTTP Request Sent to HTTPS Port' },
+	499: { status: 'Client Closed Request' },
+	/* SERVER ERROR */
+	500: { status: 'Internal Server Error' },
+	501: { status: 'Not Implemented' },
+	502: { status: 'Bad Gateway' },
+	503: { status: 'Service Unavailable' },
+	504: { status: 'Gateway Time-out' },
+	505: { status: 'HTTP Version Not Supported' },
+	506: { status: 'Variant Also Negotiates' },
+	507: { status: 'Insufficient Storage' },
+	508: { status: 'Loop Detected' },
+	// 509: ''},
+	510: { status: 'Not Extended' },
+	511: { status: 'Network Authentication Required' },
+	// 598: },
+	// 599: },
+	520: { status: 'Unknown Error' },
+	521: { status: 'Web Server Is Down' },
+	522: { status: 'Connection Timed Out' },
+	523: { status: 'Origin Is Unreachable' },
+	524: { status: 'A Timeout Occurred' },
+	525: { status: 'SSL Handshake Failed' },
+	526: { status: 'Invalid SSL Certificate' },
+	527: { status: 'Railgun Error' },
+	'default': { status: 'Default Handler' },
+	'timeout': { status: 'Timeout Handler' },
+	'abort': { status: 'Abort Handler' }
+};
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _promise = __webpack_require__(6);
+
+var _promise2 = _interopRequireDefault(_promise);
+
+var _xmlHttpRequest = __webpack_require__(8);
+
+var _xmlHttpRequest2 = _interopRequireDefault(_xmlHttpRequest);
+
+var _httpHandler = __webpack_require__(9);
+
+var _httpHandler2 = _interopRequireDefault(_httpHandler);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * XHR Adapter
+ * @param  {Object} config         Ajax configs
+ * @param  {Object} defaultHandler Http defeault ajax handler
+ * @return {Object}                Request Xhr and promise
+ */
+module.exports = function xhrAdapter(config, defaultHandler) {
+	var xmlHttp = (0, _xmlHttpRequest2.default)(config);
+
+	return {
+		'xhr': xmlHttp,
+		'promise': new _promise2.default(function (resolve, reject, updater) {
+			/**
+    * [onResolve description]
+    * @type {[type]}
+    */
+			(0, _httpHandler2.default)(xmlHttp, config, defaultHandler, {
+				onResolve: resolve,
+				onReject: reject,
+				onUpdater: updater
+			});
+		}, defaultHandler)
+	};
+};
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 /* eslint no-use-before-define: ["error", { "functions": false }]*/
 
 
-var _callbackHandler = __webpack_require__(6);
+var _callbackHandler = __webpack_require__(7);
 
 var _callbackHandler2 = _interopRequireDefault(_callbackHandler);
 
@@ -414,357 +849,7 @@ var Promise = function Promise(fn, defaultHandler, _httpResponse) {
 module.exports = Promise;
 
 /***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _core = __webpack_require__(3);
-
-var _core2 = _interopRequireDefault(_core);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var myWindow = typeof window !== 'undefined' ? window : {};
-
-myWindow.nersah = new _core2.default();
-
-module.exports = myWindow.nersah;
-
-module.exports.default = myWindow.nersah;
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-exports.default = NERSAH;
-
-var _httpStatusCode = __webpack_require__(4);
-
-var _httpStatusCode2 = _interopRequireDefault(_httpStatusCode);
-
-var _utilities = __webpack_require__(0);
-
-var _utilities2 = _interopRequireDefault(_utilities);
-
-var _xhr = __webpack_require__(5);
-
-var _xhr2 = _interopRequireDefault(_xhr);
-
-var _httpOption = __webpack_require__(10);
-
-var _httpOption2 = _interopRequireDefault(_httpOption);
-
-var _TagPromiseHandler = __webpack_require__(11);
-
-var _TagPromiseHandler2 = _interopRequireDefault(_TagPromiseHandler);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function NERSAH() {
-	var defaultHandler = _httpStatusCode2.default,
-	    defaultConfig = void 0,
-	    nersahTagName = void 0,
-	    tagPromiseHandler = new _TagPromiseHandler2.default(),
-
-	/**
-  * [buildHttpOption description]
-  * @param  {[type]} method      [description]
-  * @param  {[type]} config      [description]
-  * @param  {[type]} use_default [description]
-  * @return {[type]}             [description]
-  */
-	buildHttpOption = function buildHttpOption(method, config, useDefault) {
-		var option = new _httpOption2.default();
-
-		if (nersahTagName) {
-			defaultConfig['tag'] = nersahTagName;
-		}
-
-		if (useDefault !== false) {
-			option.setDefault(defaultConfig);
-		}
-
-		option.method = method;
-		option.extend(config);
-
-		return option;
-	},
-	    defaultHttpHandler = function defaultHttpHandler(promise) {
-		promise.xhr.onload = function () {
-			var statusCode = promise.xhr.status,
-			    callbackHandler = defaultHandler[statusCode];
-
-			if (callbackHandler && typeof callbackHandler.callback === 'function') {
-				callbackHandler.callback();
-			}
-		};
-	};
-
-	return {
-
-		/**
-   * specify the http request to a tag
-   * @param  {String} 	tag name
-   * @return {this}
-   */
-		setTag: function setTag(tag) {
-			nersahTagName = tag;
-			return this;
-		},
-
-		/**
-   * get all http request with specify tag
-   * @param  {String|Array} 	tag name or array of tags
-   * @return {promise}     	promise of http calls with specify tag name
-   */
-		tag: function tag(_tag) {
-			if (!_utilities2.default.isArray(_tag) && !_utilities2.default.isString(_tag)) {
-				return null;
-			}
-			var tags = _utilities2.default.isArray(_tag) ? _tag : _tag.split(',');
-
-			return tagPromiseHandler.handle(tags, true);
-		},
-
-		/**
-   * set default setting for ajax request
-   * @param  {Object} options	 	HTTP Request Options
-   * @param  {Object} hanlders 	HTTP Handler Option
-   */
-		setDefault: function setDefault(options, hanlders) {
-
-			if (options) {
-				defaultConfig = options;
-			}
-
-			if (hanlders) {
-				if ((typeof hanlders === 'undefined' ? 'undefined' : _typeof(hanlders)) === 'object') {
-					defaultHandler = _utilities2.default.extendCallback(defaultHandler, hanlders);
-				} else if (typeof hanlders === 'function') {
-					defaultHandler['default']['callback'] = hanlders;
-				} else {
-					console.error('Wrong ajax callback!');
-				}
-			}
-		},
-
-		/**
-   * HTTP GET Request
-   * @param  {Object} 	HTTP Request Options
-   * @return {Promise}
-   */
-		get: function get(config, useDefault) {
-			var xhrObj = (0, _xhr2.default)(buildHttpOption('GET', config, useDefault), defaultHandler);
-
-			if (nersahTagName) {
-				tagPromiseHandler.add(nersahTagName, xhrObj);
-			}
-
-			defaultHttpHandler(xhrObj);
-
-			return xhrObj.promise;
-		},
-
-		/**
-   * HTTP POST Request
-   * @param  {Object} 	HTTP Request Options
-   * @return {Promise}
-   */
-		post: function post(config, useDefault) {
-			var xhrObj = (0, _xhr2.default)(buildHttpOption('POST', config, useDefault), defaultHandler);
-
-			if (nersahTagName) {
-				tagPromiseHandler.add(nersahTagName, xhrObj);
-			}
-
-			defaultHttpHandler(xhrObj);
-
-			return xhrObj.promise;
-		},
-
-		/**
-   * HTTP PATCH Request
-   * @param  {Object} 	HTTP Request Options
-   * @return {Promise}
-   */
-		patch: function patch(config, useDefault) {
-			var xhrObj = (0, _xhr2.default)(buildHttpOption('PATCH', config, useDefault), defaultHandler);
-
-			if (nersahTagName) {
-				tagPromiseHandler.add(nersahTagName, xhrObj);
-			}
-
-			defaultHttpHandler(xhrObj);
-
-			return xhrObj.promise;
-		},
-
-		/**
-   * HTTP PUT Request
-   * @param  {Object} 	HTTP Request Options
-   * @return {Promise}
-   */
-		put: function put(config, useDefault) {
-			var xhrObj = (0, _xhr2.default)(buildHttpOption('PUT', config, useDefault), defaultHandler);
-
-			if (nersahTagName) {
-				tagPromiseHandler.add(nersahTagName, xhrObj);
-			}
-
-			defaultHttpHandler(xhrObj);
-
-			return xhrObj.promise;
-		}
-
-	};
-};
-module.exports = exports['default'];
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = {
-	0: { status: '' }, /* loading,error,abort */
-	/* SUCCESS */
-	200: { status: 'Ok' },
-	201: { status: 'Created' },
-	202: { status: 'Accepted' },
-	203: { status: 'Non-Authoritative Information' },
-	204: { status: 'No Contant' },
-	205: { status: 'Reset Contant' },
-	206: { status: 'Partial Content' },
-	207: { status: 'Multi-status' },
-	208: { status: 'Already Reported' },
-	226: { status: 'IM Used' },
-	/* REDIRECT */
-	/* CLIENT ERROR */
-	400: { status: 'Bad Request' },
-	401: { status: 'Unauthorized' },
-	402: { status: 'Payment Required' },
-	403: { status: 'Forbidden' },
-	404: { status: 'Not Found' },
-	405: { status: 'Method Not Allowed' },
-	406: { status: 'Not Acceptable' },
-	407: { status: 'Proxy Authentication Required' },
-	408: { status: 'Request Time-out' },
-	409: { status: 'Conflict' },
-	410: { status: 'Gone' },
-	411: { status: 'Length Required' },
-	412: { status: 'Precondition Failed' },
-	413: { status: 'Payload Too Large' },
-	414: { status: 'URI Too Long' },
-	415: { status: 'Unsupported Media Type' },
-	416: { status: 'Range Not Satisfiable' },
-	417: { status: 'Expectation Failed' },
-	418: { status: 'I\'m a teapot' },
-	422: { status: 'Misdirected Request' },
-	423: { status: 'Unprocessable Entity' },
-	424: { status: 'Locked' },
-	425: { status: 'Failed Dependency' },
-	426: { status: 'Upgrade Required' },
-	428: { status: 'Precondition Required' },
-	429: { status: 'Too Many Requests' },
-	431: { status: 'Request Header Fields Too Large' },
-	440: { status: 'Login Time-out' },
-	444: { status: 'No Response' },
-	449: { status: 'Retry With' },
-	// 450: ''},
-	451: { status: 'Unavailable For Legal Reasons' },
-	495: { status: 'SSL Certificate Error' },
-	496: { status: 'SSL Certificate Required' },
-	497: { status: 'HTTP Request Sent to HTTPS Port' },
-	499: { status: 'Client Closed Request' },
-	/* SERVER ERROR */
-	500: { status: 'Internal Server Error' },
-	501: { status: 'Not Implemented' },
-	502: { status: 'Bad Gateway' },
-	503: { status: 'Service Unavailable' },
-	504: { status: 'Gateway Time-out' },
-	505: { status: 'HTTP Version Not Supported' },
-	506: { status: 'Variant Also Negotiates' },
-	507: { status: 'Insufficient Storage' },
-	508: { status: 'Loop Detected' },
-	// 509: ''},
-	510: { status: 'Not Extended' },
-	511: { status: 'Network Authentication Required' },
-	// 598: },
-	// 599: },
-	520: { status: 'Unknown Error' },
-	521: { status: 'Web Server Is Down' },
-	522: { status: 'Connection Timed Out' },
-	523: { status: 'Origin Is Unreachable' },
-	524: { status: 'A Timeout Occurred' },
-	525: { status: 'SSL Handshake Failed' },
-	526: { status: 'Invalid SSL Certificate' },
-	527: { status: 'Railgun Error' },
-	'default': { status: 'Default Handler' },
-	'timeout': { status: 'Timeout Handler' },
-	'abort': { status: 'Abort Handler' }
-};
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _promise = __webpack_require__(1);
-
-var _promise2 = _interopRequireDefault(_promise);
-
-var _xmlHttpRequest = __webpack_require__(7);
-
-var _xmlHttpRequest2 = _interopRequireDefault(_xmlHttpRequest);
-
-var _httpHandler = __webpack_require__(8);
-
-var _httpHandler2 = _interopRequireDefault(_httpHandler);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/**
- * XHR Adapter
- * @param  {Object} config         Ajax configs
- * @param  {Object} defaultHandler Http defeault ajax handler
- * @return {Object}                Request Xhr and promise
- */
-module.exports = function xhrAdapter(config, defaultHandler) {
-	var xmlHttp = (0, _xmlHttpRequest2.default)(config);
-
-	return {
-		'xhr': xmlHttp,
-		'promise': new _promise2.default(function (resolve, reject, updater) {
-			/**
-    * [onResolve description]
-    * @type {[type]}
-    */
-			(0, _httpHandler2.default)(xmlHttp, config, defaultHandler, {
-				onResolve: resolve,
-				onReject: reject,
-				onUpdater: updater
-			});
-		}, defaultHandler)
-	};
-};
-
-/***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -813,7 +898,7 @@ module.exports = function callHandler(httpReturn, defaultHandler, customHandler)
 };
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -846,13 +931,13 @@ module.exports = function xmlHttpRequest(httpOption) {
 };
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _httpResponse = __webpack_require__(9);
+var _httpResponse = __webpack_require__(1);
 
 var _httpResponse2 = _interopRequireDefault(_httpResponse);
 
@@ -945,84 +1030,6 @@ module.exports = function httpHandler(httpRequest, httpOption, defaultHandler, p
 		}
 	};
 };
-
-/***/ }),
-/* 9 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/**
- * HTTP Response Object
- */
-
-var httpResponse = function httpResponse() {
-	/**
-  * XHR state
-  * @jqXHR.readyState
-  * 0   UNSENT  : The request is not initialized | (uninitialized) or (request not initialized)
-  * 1   OPENED  : The request has been set up | (loading) or (server connection established)
-  * 2   HEADERS_RECEIVED : The request has been sent | (loaded) or (request received)
-  * 3   LOADING : The request is in process | (interactive) or (processing request)
-  * 4   DONE    : The request is complete | (complete) or (request finished and response is ready)
- */
-	this.readyState;
-
-	/*
- * Get http request, response in to wanted format
- * "success", "notmodified", "nocontent", "error", "timeout", "abort", "parsererror"
- */
-	this.status;
-
-	/**
-  * Http detail
-  */
-	this.statusCode;
-	this.statusText;
-
-	this.rawResponse;
-	this.response;
-};
-
-/**
- * set response
- */
-httpResponse.prototype.setResponse = function () {
-	var httpRequest = arguments[1],
-	    httpOption = arguments[0];
-
-	this.rawResponse = httpRequest.response;
-	if (httpOption.dataType === 'html') {
-		this.response = httpRequest.responseText;
-		this.status = 'success';
-		return;
-	}
-	if (httpOption.dataType === 'xml') {
-		this.response = httpRequest.responseXML;
-		this.status = 'success';
-		return;
-	}
-	if (httpOption.dataType === 'json') {
-		try {
-			this.response = window.JSON.parse(httpRequest.responseText);
-			this.status = 'success';
-		} catch (e) {
-			this.response = null;
-			this.status = 'parsererror';
-		}
-	}
-};
-
-/**
- * Return if response status is SUCCESS or Not
- * @return {Boolean}
- */
-httpResponse.prototype.isSuccess = function () {
-	return this.statusCode >= 200 && this.statusCode < 300;
-};
-
-module.exports = httpResponse;
 
 /***/ }),
 /* 10 */
@@ -1319,18 +1326,28 @@ module.exports = httpOption;
 "use strict";
 
 
-var _promise = __webpack_require__(1);
+var _utilities = __webpack_require__(0);
 
-var _promise2 = _interopRequireDefault(_promise);
+var _utilities2 = _interopRequireDefault(_utilities);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
- * [TagPromiseHandler description]
+ * TagPromiseHandler
+ * hanle ajax promises which has special tag
  */
+var getTag = function getTag(tags) {
+
+	if (_utilities2.default.isString(tags)) {
+		return tags.toLowerCase();
+	} else if (_utilities2.default.isArray(tags)) {
+		return tags.join(',').toLowerCase();
+	}
+
+	throw new Error('wrong tag format');
+};
 var TagPromiseHandler = function TagPromiseHandler() {
-	this.store = [];
-	this.sequence;
+	this.store = {};
 };
 
 /**
@@ -1338,39 +1355,40 @@ var TagPromiseHandler = function TagPromiseHandler() {
  * @param {[type]} tag     [description]
  * @param {[type]} request [description]
  */
-TagPromiseHandler.prototype.add = function (tag, request) {
-	var uuid = new Date().getTime();
-	var isExist = this.store.find(function (x) {
-		return x.tag === tag;
-	});
+TagPromiseHandler.prototype.add = function (tags) {
+	var _this = this;
 
-	if (!isExist) {
-		this.store.push({
-			tag: tag,
-			promises: {}
+	var self = this;
+	var tag = getTag(tags);
+
+	if (!this.store[tag]) {
+		var _tags = {};
+
+		tag.split(',').map(function (x) {
+			_tags[x] = {
+				isFinished: false,
+				statusCode: 0,
+				isSuccess: false
+			};
 		});
+
+		this.store[tag] = {
+			tag: tag,
+			tags: _tags,
+			resolve: null,
+			reject: null
+		};
 	}
 
-	this.store.map(function (x) {
-		if (x.tag === tag) {
-			x.promises[uuid] = request;
+	return {
+		then: function then(resolve, reject) {
+			self.store[tag].resolve = resolve;
+			self.store[tag].reject = reject;
+			return _this;
 		}
-		return x;
-	});
+	};
 };
-/**
- * [handle description]
- * @param  {[type]} tags    [description]
- * @param  {[type]} initial [description]
- * @return {[type]}         [description]
- */
-TagPromiseHandler.prototype.handle = function (tags, initial) {
-	var self = this;
 
-	return new _promise2.default(function (resolve, reject, handler) {
-		self.observe(tags, initial, resolve, reject, handler);
-	});
-};
 /**
  * [observe description]
  * @param  {[type]} tags    [description]
@@ -1380,59 +1398,48 @@ TagPromiseHandler.prototype.handle = function (tags, initial) {
  * @param  {[type]} handler [description]
  * @return {[type]}         [description]
  */
-TagPromiseHandler.prototype.observe = function (tags, initial, resolve, reject, handler) {
+TagPromiseHandler.prototype.observe = function (tag, statueCode, isSuccess) {
 	var self = this,
-	    promiseStatic = {
-		success: 0,
-		fail: 0,
-		pending: 0,
-		total: 0
-	},
-	    OnPromiseLoaded = function OnPromiseLoaded() {
-		if (promiseStatic.total === promiseStatic.success) {
-			resolve();
-		} else if (promiseStatic.total === promiseStatic.success + promiseStatic.fail) {
-			reject();
+	    store = this.store;
+
+	Object.keys(store).forEach(function (x) {
+		var storeTag = store[x];
+
+		if (storeTag.tags[tag]) {
+			storeTag.tags[tag].statusCode = statueCode;
+			storeTag.tags[tag].isSuccess = isSuccess;
+			storeTag.tags[tag].isFinished = statueCode !== 0;
+
+			self.handlePromise(storeTag);
 		}
-	},
-	    tagPromiseStore = this.store.filter(function (x) {
-		return tags.indexOf(x.tag) !== -1;
+	});
+};
+
+/**
+ * [handlePromise description]
+ * @param  {[type]} tags [description]
+ * @return {[type]}      [description]
+ */
+TagPromiseHandler.prototype.handlePromise = function (storeTag) {
+	var isSuccess = true;
+	var isFinished = true;
+
+	Object.keys(storeTag.tags).forEach(function (x) {
+		if (!storeTag.tags[x].isFinished) {
+			isFinished = false;
+		}
+		if (!storeTag.tags[x].isSuccess) {
+			isSuccess = false;
+		}
 	});
 
-	this.sequence = !initial ? this.sequence : 0;
-
-	if (!tagPromiseStore && tagPromiseStore.length) {
-		return false;
+	if (isFinished === true) {
+		if (isSuccess === true) {
+			storeTag.resolve();
+		} else {
+			storeTag.reject();
+		}
 	}
-
-	tagPromiseStore.forEach(function (promise) {
-		Object.keys(promise.promises).forEach(function (uuid) {
-			promiseStatic.total++;
-			promise.promises[uuid].xhr.onload = function (xhr) {
-				var statusCode = xhr.target.status;
-
-				if (statusCode === 0) {
-					promiseStatic.pending++;
-				} else if (statusCode >= 200 && statusCode < 300) {
-					promiseStatic.success++;
-				} else {
-					promiseStatic.fail++;
-				}
-
-				OnPromiseLoaded();
-			};
-		});
-	});
-
-	if (this.sequence > 10) {
-		return true;
-	}
-	this.sequence++;
-	setTimeout(function () {
-		self.observe(tags, false, resolve, reject, handler);
-	}, 1000);
-
-	return true;
 };
 
 module.exports = TagPromiseHandler;

@@ -203,18 +203,13 @@ document.getElementById('btn-simple-taging')
 	print.write('log-simple-taging','------ start ------');
 	
 	nersah
-	.tag('my-tag')
+	.tag('my-tag,my-another-tag')
 	.then(function(response, httpResponse){
 		console.log('tag success');
 	}, function(){
 		console.log('tag fail');
 	});
 
-	// , function(){
-	// 	console.log('tag success');
-	// }, function(){
-	// 	console.log('tag fail');
-	// });
 
 	nersah
 	.setTag('my-tag')
@@ -223,6 +218,21 @@ document.getElementById('btn-simple-taging')
 
 		print.write('log-simple-taging','Request Response is here');
 		print.write('log-simple-taging','------ end ------');
+
+
+		nersah
+		.setTag('my-another-tag')
+		.get('~api.php')
+		.then(function(response, httpResponse){
+
+			print.write('log-simple-taging','Another Request Response is here');
+			print.write('log-simple-taging','------ end ------');
+		}, function(){
+			print.write('log-simple-taging','fail');
+			print.write('log-simple-taging','------ end ------');
+		});
+
+
 	}, function(){
 		print.write('log-simple-taging','fail');
 		print.write('log-simple-taging','------ end ------');

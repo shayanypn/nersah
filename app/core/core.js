@@ -4,6 +4,7 @@ import httpStatusCode from './../helpers/httpStatusCode';
 import utils from './../utilities';
 import xhrAdapter from './../adapters/xhr';
 import HttpOption from './../core/httpOption';
+import HttpResponse from './httpResponse';
 import TagPromiseHandler from './../adapters/TagPromiseHandler';
 
 export default function NERSAH() {
@@ -37,8 +38,13 @@ export default function NERSAH() {
 
 	defaultHttpHandler = promise => {
 		promise.xhr.onload = function () {
-			let statusCode = promise.xhr.status,
-			callbackHandler = defaultHandler[ statusCode ];
+			const XHR = promise.xhr,
+			response = new HttpResponse(),
+			callbackHandler = defaultHandler[ XHR.status ];
+
+			response.statusCode = XHR.status;
+
+			tagPromiseHandler.observe(XHR.tag, response.statusCode, response.isSuccess());
 
 			if (callbackHandler && typeof callbackHandler.callback === 'function') {
 				callbackHandler.callback();
@@ -65,9 +71,7 @@ export default function NERSAH() {
 		 */
 		tag: function (tag) {
 			if (!utils.isArray(tag) && !utils.isString(tag)) {return null;}
-			const tags = utils.isArray(tag) ? tag : tag.split(',');
-
-			return tagPromiseHandler.handle(tags, true);
+			return tagPromiseHandler.add(tag);
 		},
 
 		/**
@@ -103,9 +107,9 @@ export default function NERSAH() {
 				defaultHandler
 			);
 
-			if (nersahTagName) {
-				tagPromiseHandler.add(nersahTagName, xhrObj);
-			}
+			// if (nersahTagName) {
+			// 	tagPromiseHandler.add(nersahTagName, xhrObj);
+			// }
 
 			defaultHttpHandler(xhrObj);
 
@@ -123,9 +127,9 @@ export default function NERSAH() {
 				defaultHandler
 			);
 
-			if (nersahTagName) {
-				tagPromiseHandler.add(nersahTagName, xhrObj);
-			}
+			// if (nersahTagName) {
+			// 	tagPromiseHandler.add(nersahTagName, xhrObj);
+			// }
 
 			defaultHttpHandler(xhrObj);
 
@@ -143,9 +147,9 @@ export default function NERSAH() {
 				defaultHandler
 			);
 
-			if (nersahTagName) {
-				tagPromiseHandler.add(nersahTagName, xhrObj);
-			}
+			// if (nersahTagName) {
+			// 	tagPromiseHandler.add(nersahTagName, xhrObj);
+			// }
 
 			defaultHttpHandler(xhrObj);
 
@@ -163,9 +167,9 @@ export default function NERSAH() {
 				defaultHandler
 			);
 
-			if (nersahTagName) {
-				tagPromiseHandler.add(nersahTagName, xhrObj);
-			}
+			// if (nersahTagName) {
+			// 	tagPromiseHandler.add(nersahTagName, xhrObj);
+			// }
 
 			defaultHttpHandler(xhrObj);
 

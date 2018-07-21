@@ -1,13 +1,24 @@
 'use strict';
-import Promise from './../helpers/promise';
+import Utils from '../utilities';
 
 /**
  * TagPromiseHandler
  * hanle ajax promises which has special tag
  */
+const getTag = (tags) => {
+
+	if (Utils.isString(tags)) {
+		return tags.toLowerCase();
+
+	} else if (Utils.isArray(tags)) {
+		return tags.join(',').toLowerCase();
+
+	}
+
+	throw new Error('wrong tag format');
+};
 const TagPromiseHandler = function () {
-	this.store = [];
-	this.sequence;
+	this.store = {};
 };
 
 /**
@@ -15,37 +26,38 @@ const TagPromiseHandler = function () {
  * @param {[type]} tag     [description]
  * @param {[type]} request [description]
  */
-TagPromiseHandler.prototype.add = function (tag, request) {
-	const uuid = (new Date()).getTime();
-	const isExist = this.store.find(x => x.tag === tag);
+TagPromiseHandler.prototype.add = function (tags) {
+	const self = this;
+	const tag = getTag(tags);
 
-	if (!isExist) {
-		this.store.push({
-			tag: tag,
-			promises: {}
+	if (!this.store[tag]) {
+		const tags = {};
+
+		tag.split(',').map(x=> {
+			tags[x] = {
+				isFinished: false,
+				statusCode: 0,
+				isSuccess: false
+			};
 		});
+
+		this.store[tag] = {
+			tag: tag,
+			tags: tags,
+			resolve: null,
+			reject: null
+		};
 	}
 
-	this.store.map(x => {
-		if (x.tag === tag) {
-			x.promises[uuid] = request;
+	return {
+		then: (resolve, reject) => {
+			self.store[tag].resolve = resolve;
+			self.store[tag].reject = reject;
+			return this;
 		}
-		return x;
-	});
+	};
 };
-/**
- * [handle description]
- * @param  {[type]} tags    [description]
- * @param  {[type]} initial [description]
- * @return {[type]}         [description]
- */
-TagPromiseHandler.prototype.handle = function (tags, initial) {
-	const self = this;
 
-	return new Promise((resolve, reject, handler) => {
-		self.observe(tags, initial, resolve, reject, handler);
-	});
-};
 /**
  * [observe description]
  * @param  {[type]} tags    [description]
@@ -55,55 +67,48 @@ TagPromiseHandler.prototype.handle = function (tags, initial) {
  * @param  {[type]} handler [description]
  * @return {[type]}         [description]
  */
-TagPromiseHandler.prototype.observe = function (tags, initial, resolve, reject, handler) {
+TagPromiseHandler.prototype.observe = function (tag, statueCode, isSuccess) {
 	const self = this,
-	promiseStatic = {
-		success: 0,
-		fail: 0,
-		pending: 0,
-		total: 0
-	},
-	OnPromiseLoaded = () => {
-		if (promiseStatic.total === promiseStatic.success) {
-			resolve();
-		} else if (promiseStatic.total === promiseStatic.success + promiseStatic.fail) {
-			reject();
+	store = this.store;
+
+	Object.keys(store).forEach(x => {
+		const storeTag = store[x];
+
+		if (storeTag.tags[tag]) {
+			storeTag.tags[tag].statusCode = statueCode;
+			storeTag.tags[tag].isSuccess = isSuccess;
+			storeTag.tags[tag].isFinished = statueCode !== 0;
+
+			self.handlePromise(storeTag);
 		}
-	},
-	tagPromiseStore = this.store.filter(x => tags.indexOf(x.tag) !== -1);
+	});
+};
 
-	this.sequence = !initial ? this.sequence : 0;
+/**
+ * [handlePromise description]
+ * @param  {[type]} tags [description]
+ * @return {[type]}      [description]
+ */
+TagPromiseHandler.prototype.handlePromise = function (storeTag) {
+	let isSuccess = true;
+	let isFinished = true;
 
-	if (!tagPromiseStore && tagPromiseStore.length) {
-		return false;
-	}
-
-	tagPromiseStore.forEach(promise => {
-		Object.keys(promise.promises).forEach(uuid => {
-			promiseStatic.total++;
-			promise.promises[uuid].xhr.onload = function (xhr) {
-				const statusCode = xhr.target.status;
-
-				if (statusCode === 0) {
-					promiseStatic.pending++;
-				} else if (statusCode >= 200 && statusCode < 300) {
-					promiseStatic.success++;
-				} else {
-					promiseStatic.fail++;
-				}
-
-				OnPromiseLoaded();
-			};
-		});
+	Object.keys(storeTag.tags).forEach(x=> {
+		if (!storeTag.tags[x].isFinished) {
+			isFinished = false;
+		}
+		if (!storeTag.tags[x].isSuccess) {
+			isSuccess = false;
+		}
 	});
 
-	if (this.sequence > 10) { return true; }
-	this.sequence++;
-	setTimeout(function () {
-		self.observe(tags, false, resolve, reject, handler);
-	}, 1000);
-
-	return true;
+	if (isFinished === true) {
+		if (isSuccess === true) {
+			storeTag.resolve();
+		} else {
+			storeTag.reject();
+		}
+	}
 };
 
 module.exports = TagPromiseHandler;
