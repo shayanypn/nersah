@@ -1,3 +1,4 @@
+
 Nersah
 ===================
 Advance promise based HTTP client for the browser.
@@ -17,4 +18,47 @@ Advance promise based HTTP client for the browser.
 - Taging Request
 - Powerfull bulk request handling
 
-Under Develope
+## Installing
+
+
+## Example
+Performing a `GET` request
+
+    nersah
+	.get('/user')
+	.then(function(response, httpResponse){
+        // handle success
+		console.log(response);
+	}, function(){
+        // handle error
+        console.log(error);
+	})
+	.then(function(){
+		// handle after response
+	})
+
+
+
+
+## Nersah API
+
+
+
+
+
+## Request Config
+
+
+
+## Hanlder Config
+
+
+
+## Response Schema
+
+
+
+
+## License
+
+MIT
