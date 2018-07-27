@@ -3,7 +3,7 @@
 /**
  * HTTP Response Object
  */
-let httpResponse = function () {
+const httpResponse = function () {
 	/**
 	 * XHR state
 	 * @jqXHR.readyState

@@ -4,15 +4,14 @@ import httpStatusCode from './../helpers/httpStatusCode';
 import utils from './../utilities';
 import xhrAdapter from './../adapters/xhr';
 import HttpOption from './../core/httpOption';
-import Promise from './../helpers/promise';
+import HttpResponse from './httpResponse';
+import TagPromiseHandler from './../adapters/TagPromiseHandler';
 
-const TagPromiseStore = [];
 export default function NERSAH() {
 	let defaultHandler = httpStatusCode,
-	promises = [],
 	defaultConfig,
 	nersahTagName,
-	nersahTagSequence,
+	tagPromiseHandler = new TagPromiseHandler(),
 	/**
 	 * [buildHttpOption description]
 	 * @param  {[type]} method      [description]
@@ -36,154 +35,22 @@ export default function NERSAH() {
 
 		return option;
 	},
-	/**
-	 * Multi Promise Handler
-	 * @param  {Promise-Array} _promises
-	 * @return {Promise}       [description]
-	 */
-	handleMultiPromise = promises => {
-		return new Promise(function (resolve, reject, handler) {
-
-			let successPromises = [],
-			failPromises = [],
-			mapRequests = function () {
-				return promises.map(function (item) { return item.promise; });
-			},
-			didRequestSuccess = function (item) {
-				if (successPromises.indexOf(item) === -1) {
-					successPromises.push(item);
-					if (successPromises.length === promises.length) {
-						setTimeout(function () {
-							resolve(mapRequests());
-						}, 10);
-					}
-				}
-			},
-			didRequestFail = item => {
-				if (failPromises.indexOf(item) === -1) {
-					failPromises.push(item);
-					if (
-						failPromises.length !== 0 &&
-						(failPromises.length + successPromises.length) === promises.length
-						) {
-						setTimeout(function () {
-							reject(mapRequests());
-						}, 10);
-					}
-				}
-			};
-
-			promises.forEach(function (promiseObj, index) {
-				promiseObj.xhr.onload = function () {
-					if (promiseObj.xhr.status >= 200 && promiseObj.xhr.status < 300) {
-						didRequestSuccess(index);
-					} else {
-						didRequestFail(index);
-					}
-				};
-			});
-		});
-	},
-	/**
-	 * Promise Collector
-	 * @param  {Promise} _promise [description]
-	 */
-	handlePromise = _promise => {
-		promises.push(_promise);
-	},
 
 	defaultHttpHandler = promise => {
 		promise.xhr.onload = function () {
-			let statusCode = promise.xhr.status,
-			callbackHandler = defaultHandler[ statusCode ];
+			const XHR = promise.xhr,
+			response = new HttpResponse(),
+			callbackHandler = defaultHandler[ XHR.status ];
+
+			response.statusCode = XHR.status;
+
+			tagPromiseHandler.observe(XHR.tag, response.statusCode, response.isSuccess());
 
 			if (callbackHandler && typeof callbackHandler.callback === 'function') {
 				callbackHandler.callback();
 			}
 		};
-	},
-
-	storeRequest = (tag, request) => {
-		const uuid = (new Date()).getTime();
-
-		const isExist = TagPromiseStore.find( x => x.tag === tag);
-		if (!isExist) {
-			TagPromiseStore.push({
-				tag: tag,
-				promises: {}
-			});
-		}
-
-		// [1,2,3,4,5].reduce((a,b)=>{
-		// 	console.log(a,b);
-
-		// 	return a+b;
-		// })
-
-
-
-
-		TagPromiseStore.map(x => {
-			if (x.tag === tag) {
-				x.promises[uuid] = request;
-			}
-			return x;
-		})
-	},
-	HandleTagPromises = (tags, initial) =>{
-		return new Promise( (resolve, reject, handler) => {
-			ObserveTagPromise(tags, initial, resolve, reject, handler);
-		});
-	},
-	ObserveTagPromise = (tags, initial, resolve, reject, handler) => {
-
-		const OnPromiseLoaded = () => {
-			if (promiseStatic.total === promiseStatic.success)
-				resolve();
-			else if (promiseStatic.total === promiseStatic.success + promiseStatic.fail )
-				reject();
-		},
-		promiseStatic = {
-			success: 0,
-			fail: 0,
-			pending: 0,
-			total: 0,
-		},
-		tagPromiseStore = TagPromiseStore.filter(x => tags.indexOf(x.tag) !== -1 );
-
-		nersahTagSequence = !initial ? nersahTagSequence : 0;
-
-		if (!tagPromiseStore && tagPromiseStore.length) {
-			return false;
-		}
-
-		tagPromiseStore.forEach( promise => {
-			Object.keys(promise.promises).forEach( uuid => {
-				promiseStatic.total++;
-				promise.promises[uuid].xhr.onload = function (xhr) {
-					
-					const statusCode = xhr.originalTarget.status;
-
-					if (statusCode == 0) 
-						promiseStatic.pending++;
-					else if (statusCode >= 200 && statusCode < 300) 
-						promiseStatic.success++;
-					else 
-						promiseStatic.fail++;
-
-					OnPromiseLoaded();
-				};
-			});
-		});
-
-
-		if (nersahTagSequence > 10) { return; }
-		nersahTagSequence++;
-		setTimeout(function(){
-			ObserveTagPromise(tags, false, resolve, reject, handler);
-		}, 1000);
 	};
-
 
 	return {
 
@@ -204,11 +71,9 @@ export default function NERSAH() {
 		 */
 		tag: function (tag) {
 			if (!utils.isArray(tag) && !utils.isString(tag)) {return null;}
-
-			let tags = utils.isArray(tag) ? tag : tag.split(',');
-
-			return HandleTagPromises(tags, true);
+			return tagPromiseHandler.add(tag);
 		},
+
 		/**
 		 * set default setting for ajax request
 		 * @param  {Object} options	 	HTTP Request Options
@@ -242,13 +107,11 @@ export default function NERSAH() {
 				defaultHandler
 			);
 
-			if (nersahTagName) {
-				storeRequest(nersahTagName, xhrObj);
-			}
+			// if (nersahTagName) {
+			// 	tagPromiseHandler.add(nersahTagName, xhrObj);
+			// }
 
 			defaultHttpHandler(xhrObj);
-
-			handlePromise(xhrObj);
 
 			return xhrObj.promise;
 		},
@@ -264,7 +127,12 @@ export default function NERSAH() {
 				defaultHandler
 			);
 
-			handlePromise(xhrObj);
+			// if (nersahTagName) {
+			// 	tagPromiseHandler.add(nersahTagName, xhrObj);
+			// }
+
+			defaultHttpHandler(xhrObj);
+
 			return xhrObj.promise;
 		},
 
@@ -279,7 +147,12 @@ export default function NERSAH() {
 				defaultHandler
 			);
 
-			handlePromise(xhrObj);
+			// if (nersahTagName) {
+			// 	tagPromiseHandler.add(nersahTagName, xhrObj);
+			// }
+
+			defaultHttpHandler(xhrObj);
+
 			return xhrObj.promise;
 		},
 
@@ -294,7 +167,12 @@ export default function NERSAH() {
 				defaultHandler
 			);
 
-			handlePromise(xhrObj);
+			// if (nersahTagName) {
+			// 	tagPromiseHandler.add(nersahTagName, xhrObj);
+			// }
+
+			defaultHttpHandler(xhrObj);
+
 			return xhrObj.promise;
 		}
 
