@@ -114,6 +114,10 @@ function isNumber(val) {
   return typeof val === 'number';
 }
 
+function isObject(val) {
+  return (typeof val === 'undefined' ? 'undefined' : _typeof(val)) === 'object';
+}
+
 /**
  * Determine if a value exist in an array or not
  *
@@ -256,6 +260,7 @@ module.exports = {
   isArray: isArray,
   isString: isString,
   isNumber: isNumber,
+  isObject: isObject,
   includeArray: includeArray,
   clone: clone,
   filter: filter,
@@ -500,7 +505,11 @@ function NERSAH() {
    * @param  {Object} 	HTTP Request Options
    * @return {Promise}
    */
-		get: function get(config, useDefault) {
+		get: function get(url, config, useDefault) {
+
+			config = _utilities2.default.isObject(config) ? config : {};
+			config['url'] = url;
+
 			var xhrObj = (0, _xhr2.default)(buildHttpOption('GET', config, useDefault), defaultHandler);
 
 			// if (nersahTagName) {
@@ -1038,6 +1047,14 @@ module.exports = function httpHandler(httpRequest, httpOption, defaultHandler, p
 "use strict";
 
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _utilities = __webpack_require__(0);
+
+var _utilities2 = _interopRequireDefault(_utilities);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 /**
  * HTTP Option Object
  */
@@ -1061,12 +1078,6 @@ module.exports = function httpHandler(httpRequest, httpOption, defaultHandler, p
 
 // return data;
 // }],
-
-// // `params` are the URL parameters to be sent with the request
-// // Must be a plain object or a URLSearchParams object
-// params: {
-// ID: 12345
-// },
 
 // // `paramsSerializer` is an optional function in charge of serializing `params`
 // // (e.g. https://www.npmjs.com/package/qs, http://api.jquery.com/jquery.param/)
@@ -1168,8 +1179,6 @@ module.exports = function httpHandler(httpRequest, httpOption, defaultHandler, p
 // // })
 // };
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 var httpOption = function httpOption() {
 
 	// `url` is the server URL that will be used for the request
@@ -1221,6 +1230,10 @@ var httpOption = function httpOption() {
   * @type {Function}
   */
 	this.headerFn;
+
+	// `params` are the URL parameters to be sent with the request
+	// Must be a plain object or a URLSearchParams object
+	this.params = {};
 };
 
 httpOption.prototype.setDefault = function () {
@@ -1244,12 +1257,14 @@ httpOption.prototype.setDefault = function () {
 		} else if (typeof options.headers === 'function') {
 			this.headerFn = options.headers;
 		}
-	} else {}
+	} else {
+		console.error('invalid option');
+	}
 };
 
 httpOption.prototype.extend = function () {
-	var _this = this,
-	    options = void 0;
+	var _this = this;
+	var options = void 0;
 
 	if (typeof arguments['0'] === 'string') {
 		options = {
@@ -1277,6 +1292,13 @@ httpOption.prototype.extend = function () {
 	} else if (typeof options.headers === 'function') {
 		_this.headers = options.headers;
 	}
+
+	/**
+  * Params
+  */
+	if (_utilities2.default.isObject(options.params)) {
+		this.params = options.params;
+	}
 };
 
 httpOption.prototype.isValid = function () {
@@ -1284,7 +1306,47 @@ httpOption.prototype.isValid = function () {
 };
 
 httpOption.prototype.getUrl = function () {
-	return this.url.split('')[0] === '~' ? this.urlBase + (this.urlPrefix && this.urlPrefix !== '' ? this.urlPrefix + '/a' : '') + this.url.slice(1, this.url.length) + this.urlSuffix : this.url;
+	var _this = this;
+	var queries = [];
+	var url = '';
+
+	if (this.url.split('?').length > 1) {
+
+		this.url.split('?').forEach(function (x) {
+			var param = x.split('=');
+
+			if (param.length === 2) {
+				queries.push(x);
+			}
+		});
+	}
+
+	if (this.url.split('')[0] === '~') {
+		url = this.urlBase;
+
+		if (this.urlPrefix && this.urlPrefix !== '') {
+			url += this.urlPrefix + '/a';
+		}
+
+		url += this.url.slice(1, url.length);
+
+		url += this.urlSuffix;
+	}
+
+	var paramKeys = Object.keys(this.params);
+
+	if (paramKeys.length) {
+		paramKeys.forEach(function (x) {
+			queries.push(x + '=' + _this.params[x]);
+		});
+	}
+
+	url = url.slice(0, url.indexOf('?'));
+	if (queries.length) {
+		url += '?' + queries.join('&');
+	};
+
+	return url;
 };
 
 httpOption.prototype.getData = function () {

@@ -20,7 +20,7 @@ export default function NERSAH() {
 	 * @return {[type]}             [description]
 	 */
 	buildHttpOption = function (method, config, useDefault) {
-		let option = new HttpOption();
+		const option = new HttpOption();
 
 		if (nersahTagName) {
 			defaultConfig['tag'] = nersahTagName;
@@ -101,8 +101,12 @@ export default function NERSAH() {
 		 * @param  {Object} 	HTTP Request Options
 		 * @return {Promise}
 		 */
-		get: function (config, useDefault) {
-			let xhrObj = xhrAdapter(
+		get: function (url, config, useDefault) {
+
+			config = utils.isObject(config) ? config : {};
+			config['url'] = url;
+
+			const xhrObj = xhrAdapter(
 				buildHttpOption('GET', config, useDefault),
 				defaultHandler
 			);

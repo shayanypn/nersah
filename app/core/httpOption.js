@@ -1,5 +1,7 @@
 'use strict';
 
+import utils from './../utilities';
+
 /**
  * HTTP Option Object
  */
@@ -23,12 +25,6 @@
 
 	// return data;
 	// }],
-
-	// // `params` are the URL parameters to be sent with the request
-	// // Must be a plain object or a URLSearchParams object
-	// params: {
-	// ID: 12345
-	// },
 
 	// // `paramsSerializer` is an optional function in charge of serializing `params`
 	// // (e.g. https://www.npmjs.com/package/qs, http://api.jquery.com/jquery.param/)
@@ -130,7 +126,7 @@
 	// // })
 // };
 
-let httpOption = function () {
+const httpOption = function () {
 
 	// `url` is the server URL that will be used for the request
 	this.url = '';
@@ -182,12 +178,16 @@ let httpOption = function () {
 	 */
 	this.headerFn;
 
+	// `params` are the URL parameters to be sent with the request
+	// Must be a plain object or a URLSearchParams object
+	this.params = {};
+
 };
 
 httpOption.prototype.setDefault = function () {
 
 	if (typeof arguments['0'] === 'object') {
-		let _this = this,
+		const _this = this,
 		options = arguments['0'],
 		stringProps = ['urlBase', 'urlPrefix', 'urlSuffix', 'method', 'dataType', 'tag'];
 
@@ -207,13 +207,13 @@ httpOption.prototype.setDefault = function () {
 		}
 
 	} else {
-
+		console.error('invalid option');
 	}
 };
 
 httpOption.prototype.extend = function () {
-	let _this = this,
-	options;
+	const _this = this;
+	let options;
 
 	if (typeof arguments['0'] === 'string') {
 		options = {
@@ -243,6 +243,14 @@ httpOption.prototype.extend = function () {
 	} else if (typeof options.headers === 'function') {
 		_this.headers = options.headers;
 	}
+
+	/**
+	 * Params
+	 */
+	if (utils.isObject(options.params)) {
+		this.params = options.params;
+	}
+
 };
 
 httpOption.prototype.isValid = function () {
@@ -250,11 +258,47 @@ httpOption.prototype.isValid = function () {
 };
 
 httpOption.prototype.getUrl = function () {
-	return this.url.split('')[0] === '~' ? (
-				this.urlBase +
-				((this.urlPrefix && this.urlPrefix !== '') ? (this.urlPrefix + '/a') : '') +
-				this.url.slice(1, this.url.length) + this.urlSuffix
-		) : this.url;
+	const _this = this;
+	let queries = [];
+	let url = '';
+
+	if (this.url.split('?').length > 1) {
+
+		this.url.split('?').forEach(x=>{
+			const param = x.split('=');
+
+			if (param.length === 2) {
+				queries.push(x);
+			}
+		});
+	}
+
+	if (this.url.split('')[0] === '~') {
+		url = this.urlBase;
+
+		if (this.urlPrefix && this.urlPrefix !== '') {
+			url += (this.urlPrefix + '/a');
+		}
+
+		url += this.url.slice(1, url.length);
+
+		url += this.urlSuffix;
+	}
+
+	const paramKeys = Object.keys(this.params);
+
+	if (paramKeys.length) {
+		paramKeys.forEach(x =>{
+			queries.push(x + '=' + _this.params[x]);
+		});
+	}
+
+	url = url.slice(0, url.indexOf('?'));
+	if (queries.length) {
+		url += '?' + queries.join('&');
+	};
+
+	return url;
 };
 
 httpOption.prototype.getData = function () {

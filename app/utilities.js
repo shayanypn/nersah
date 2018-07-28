@@ -30,6 +30,10 @@ function isNumber(val) {
 	return typeof val === 'number';
 }
 
+function isObject(val) {
+  return typeof val === 'object';
+}
+
 /**
  * Determine if a value exist in an array or not
  *
@@ -168,6 +172,7 @@ module.exports = {
   isArray: isArray,
   isString: isString,
   isNumber: isNumber,
+  isObject: isObject,
   includeArray: includeArray,
   clone: clone,
   filter: filter,

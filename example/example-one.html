@@ -140,7 +140,11 @@ document.getElementById('btn-simple-get')
 
 
 	nersah
-	.get('~api.php')
+	.get('~api.php?a=b', {
+		params: {
+			ID: 12345
+		}
+	})
 	.then(function(response, httpResponse){
 
 		print.write('log-simple-get','Request Response is here');

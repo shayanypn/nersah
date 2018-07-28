@@ -28,15 +28,28 @@ Performing a `GET` request
 	.get('/user')
 	.then(function(response, httpResponse){
         // handle success
-		console.log(response);
 	}, function(){
         // handle error
-        console.log(error);
 	})
 	.then(function(){
 		// handle after response
 	})
 
+
+    nersah
+	.get('/user', {
+	   parans:{
+	      key: 'value'
+	   }
+	})
+	.then(function(response, httpResponse){
+        // handle success
+	}, function(){
+        // handle error
+	})
+	.then(function(){
+		// handle after response
+	})
 
 
 
