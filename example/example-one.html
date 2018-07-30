@@ -205,15 +205,6 @@ document.getElementById('btn-simple-taging')
 	
 
 	print.write('log-simple-taging','------ start ------');
-	
-	nersah
-	.tag('my-tag,my-another-tag')
-	.then(function(response, httpResponse){
-		console.log('tag success');
-	}, function(){
-		console.log('tag fail');
-	});
-
 
 	nersah
 	.setTag('my-tag')
@@ -244,6 +235,13 @@ document.getElementById('btn-simple-taging')
 });
 
 
+nersah
+.tag('my-tag,my-another-tag')
+.then(function(response, httpResponse){
+	console.log('tag success');
+}, function(){
+	console.log('tag fail');
+});
 
 
 

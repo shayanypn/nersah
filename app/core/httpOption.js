@@ -259,7 +259,7 @@ httpOption.prototype.isValid = function () {
 
 httpOption.prototype.getUrl = function () {
 	const _this = this;
-	let queries = [];
+	const queries = [];
 	let url = '';
 
 	if (this.url.split('?').length > 1) {
@@ -293,7 +293,10 @@ httpOption.prototype.getUrl = function () {
 		});
 	}
 
-	url = url.slice(0, url.indexOf('?'));
+	if (url.indexOf('?') !== -1) {
+		url = url.slice(0, url.indexOf('?'));
+	}
+
 	if (queries.length) {
 		url += '?' + queries.join('&');
 	};
