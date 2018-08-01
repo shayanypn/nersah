@@ -102,7 +102,6 @@ export default function NERSAH() {
 		 * @return {Promise}
 		 */
 		get: function (url, config, useDefault) {
-
 			config = utils.isObject(config) ? config : {};
 			config['url'] = url;
 
@@ -110,10 +109,6 @@ export default function NERSAH() {
 				buildHttpOption('GET', config, useDefault),
 				defaultHandler
 			);
-
-			// if (nersahTagName) {
-			// 	tagPromiseHandler.add(nersahTagName, xhrObj);
-			// }
 
 			defaultHttpHandler(xhrObj);
 
@@ -125,15 +120,14 @@ export default function NERSAH() {
 		 * @param  {Object} 	HTTP Request Options
 		 * @return {Promise}
 		 */
-		post: function (config, useDefault) {
-			let xhrObj = xhrAdapter(
+		post: function (url, config, useDefault) {
+			config = utils.isObject(config) ? config : {};
+			config['url'] = url;
+
+			const xhrObj = xhrAdapter(
 				buildHttpOption('POST', config, useDefault),
 				defaultHandler
 			);
-
-			// if (nersahTagName) {
-			// 	tagPromiseHandler.add(nersahTagName, xhrObj);
-			// }
 
 			defaultHttpHandler(xhrObj);
 

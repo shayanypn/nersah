@@ -114,6 +114,11 @@ function toQueryString(data) {
   return query.replace(/&$/, '').replace(/%20/g, '+');
 }
 
+
+function toJSON(data) {
+  return JSON.stringify(data);
+}
+
 /**
  * Determine if a value is a Number
  *
@@ -178,5 +183,6 @@ module.exports = {
   filter: filter,
   extendCallback: extendCallback,
   toQueryString: toQueryString,
+  toJSON: toJSON,
   isStandardBrowserEnv: isStandardBrowserEnv
 };

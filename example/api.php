@@ -32,4 +32,10 @@ header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
 
 header('Content-Type:application/json');
 
-echo json_encode(array('status' => $_code));
+$response = array('status' => $_code);
+
+
+
+
+
+echo json_encode($response);

@@ -8,7 +8,7 @@ import HttpResponse from './../core/httpResponse';
  * @param  {[type]} _handler   [description]
  * @return {[type]}            [description]
  */
-let statusText = function (httpReturn, _handler) {
+const statusText = function (httpReturn, _handler) {
 
 	let text = '';
 

@@ -166,7 +166,13 @@ document.getElementById('btn-simple-post')
 	document.getElementById('log-simple-post').innerHTML = '';
 	print.write('log-simple-post','------ start ------');
 	nersah
-	.post('~api.php')
+	.post('~api.php',{
+		data: {
+			key: 'value'
+		},
+        dataType: 'json',
+        contentType: 'application/json',
+	})
 	.then(function(response, httpResponse){
 
 		print.write('log-simple-post','Request Response is here');

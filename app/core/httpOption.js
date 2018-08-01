@@ -1,6 +1,8 @@
 'use strict';
 
 import utils from './../utilities';
+import { GET, POST, PATCH, PUT }  from './httpMethod';
+
 
 /**
  * HTTP Option Object
@@ -13,7 +15,7 @@ const httpOption = function () {
 	// `method` is the request method to be used 
 	// when making the request
 	// GET, DELETE, POST, PUT, PATCH, HEAD
-	this.method = 'GET';
+	this.method = GET;
 
 	/**
 	 * the base url
@@ -184,7 +186,18 @@ httpOption.prototype.getUrl = function () {
 
 httpOption.prototype.getData = function () {
 
-	return (this.method === 'GET') ? null : this.data;
+	if (this.method === POST
+			|| this.method === PATCH
+			|| this.method === PUT) {
+		
+		if (this.dataType === 'json') {
+			return utils.toJSON(this.data);	
+		}
+		
+		return utils.toQueryString(this.data);
+	}
+
+	return null;
 };
 
 httpOption.prototype.getHeaders = function () {

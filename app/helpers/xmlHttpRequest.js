@@ -4,7 +4,7 @@
 module.exports = function xmlHttpRequest(httpOption) {
 
 	if (httpOption.isValid()) {
-		let xmlHttp = window.XMLHttpRequest ? (new XMLHttpRequest()) : (new ActiveXObject('Microsoft.XMLHTTP'));
+		const xmlHttp = window.XMLHttpRequest ? (new XMLHttpRequest()) : (new ActiveXObject('Microsoft.XMLHTTP'));
 
 		xmlHttp.open(httpOption.method, httpOption.getUrl(), true);
 
@@ -14,9 +14,10 @@ module.exports = function xmlHttpRequest(httpOption) {
 			xmlHttp.setRequestHeader(header.key, header.value);
 		});
 
+		/**
+		 * Set request body
+		 */
 		xmlHttp.send(httpOption.getData());
-
-		// xmlHttp.send(utils.toQueryString(httpOption.data));
 
 		if (httpOption.tag) {
 			xmlHttp['tag'] = httpOption.tag;

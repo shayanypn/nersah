@@ -202,6 +202,10 @@ function toQueryString(data) {
   return query.replace(/&$/, '').replace(/%20/g, '+');
 }
 
+function toJSON(data) {
+  return JSON.stringify(data);
+}
+
 /**
  * Determine if a value is a Number
  *
@@ -266,6 +270,7 @@ module.exports = {
   filter: filter,
   extendCallback: extendCallback,
   toQueryString: toQueryString,
+  toJSON: toJSON,
   isStandardBrowserEnv: isStandardBrowserEnv
 };
 
@@ -403,7 +408,7 @@ var _httpResponse = __webpack_require__(1);
 
 var _httpResponse2 = _interopRequireDefault(_httpResponse);
 
-var _TagPromiseHandler = __webpack_require__(11);
+var _TagPromiseHandler = __webpack_require__(12);
 
 var _TagPromiseHandler2 = _interopRequireDefault(_TagPromiseHandler);
 
@@ -506,15 +511,10 @@ function NERSAH() {
    * @return {Promise}
    */
 		get: function get(url, config, useDefault) {
-
 			config = _utilities2.default.isObject(config) ? config : {};
 			config['url'] = url;
 
 			var xhrObj = (0, _xhr2.default)(buildHttpOption('GET', config, useDefault), defaultHandler);
-
-			// if (nersahTagName) {
-			// 	tagPromiseHandler.add(nersahTagName, xhrObj);
-			// }
 
 			defaultHttpHandler(xhrObj);
 
@@ -526,12 +526,11 @@ function NERSAH() {
    * @param  {Object} 	HTTP Request Options
    * @return {Promise}
    */
-		post: function post(config, useDefault) {
-			var xhrObj = (0, _xhr2.default)(buildHttpOption('POST', config, useDefault), defaultHandler);
+		post: function post(url, config, useDefault) {
+			config = _utilities2.default.isObject(config) ? config : {};
+			config['url'] = url;
 
-			// if (nersahTagName) {
-			// 	tagPromiseHandler.add(nersahTagName, xhrObj);
-			// }
+			var xhrObj = (0, _xhr2.default)(buildHttpOption('POST', config, useDefault), defaultHandler);
 
 			defaultHttpHandler(xhrObj);
 
@@ -916,27 +915,28 @@ module.exports = function callHandler(httpReturn, defaultHandler, customHandler)
 
 module.exports = function xmlHttpRequest(httpOption) {
 
-		if (httpOption.isValid()) {
-				var xmlHttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP');
+	if (httpOption.isValid()) {
+		var xmlHttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP');
 
-				xmlHttp.open(httpOption.method, httpOption.getUrl(), true);
+		xmlHttp.open(httpOption.method, httpOption.getUrl(), true);
 
-				httpOption.getHeaders().forEach(function (header) {
-						xmlHttp.setRequestHeader(header.key, header.value);
-				});
+		httpOption.getHeaders().forEach(function (header) {
+			xmlHttp.setRequestHeader(header.key, header.value);
+		});
 
-				xmlHttp.send(httpOption.getData());
+		/**
+   * Set request body
+   */
+		xmlHttp.send(httpOption.getData());
 
-				// xmlHttp.send(utils.toQueryString(httpOption.data));
-
-				if (httpOption.tag) {
-						xmlHttp['tag'] = httpOption.tag;
-				}
-
-				return xmlHttp;
+		if (httpOption.tag) {
+			xmlHttp['tag'] = httpOption.tag;
 		}
 
-		return null;
+		return xmlHttp;
+	}
+
+	return null;
 };
 
 /***/ }),
@@ -1053,143 +1053,22 @@ var _utilities = __webpack_require__(0);
 
 var _utilities2 = _interopRequireDefault(_utilities);
 
+var _httpMethod = __webpack_require__(11);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
  * HTTP Option Object
  */
-// let httpOptionBase = function () {
-
-// // `transformRequest` allows changes to the request data before it is sent to the server
-// // This is only applicable for request methods 'PUT', 'POST', and 'PATCH'
-// // The last function in the array must return a string or an instance of Buffer, ArrayBuffer,
-// // FormData or Stream
-// // You may modify the headers object.
-// transformRequest: [function (data, headers) {
-// // Do whatever you want to transform the data
-
-// return data;
-// }],
-
-// // `transformResponse` allows changes to the response data to be made before
-// // it is passed to then/catch
-// transformResponse: [function (data) {
-// // Do whatever you want to transform the data
-
-// return data;
-// }],
-
-// // `paramsSerializer` is an optional function in charge of serializing `params`
-// // (e.g. https://www.npmjs.com/package/qs, http://api.jquery.com/jquery.param/)
-// paramsSerializer: function (params) {
-// return Qs.stringify(params, {arrayFormat: 'brackets'})
-// },
-
-// // `data` is the data to be sent as the request body
-// // Only applicable for request methods 'PUT', 'POST', and 'PATCH'
-// // When no `transformRequest` is set, must be of one of the following types:
-// // - string, plain object, ArrayBuffer, ArrayBufferView, URLSearchParams
-// // - Browser only: FormData, File, Blob
-// // - Node only: Stream, Buffer
-// data: {
-// firstName: 'Fred'
-// },
-
-// // `timeout` specifies the number of milliseconds before the request times out.
-// // If the request takes longer than `timeout`, the request will be aborted.
-// timeout: 1000,
-
-// // `withCredentials` indicates whether or not cross-site Access-Control requests
-// // should be made using credentials
-// withCredentials: false, // default
-
-// // `adapter` allows custom handling of requests which makes testing easier.
-// // Return a promise and supply a valid response (see lib/adapters/README.md).
-// adapter: function (config) {
-// /* ... */
-// },
-
-// // `auth` indicates that HTTP Basic auth should be used, and supplies credentials.
-// // This will set an `Authorization` header, overwriting any existing
-// // `Authorization` custom headers you have set using `headers`.
-// auth: {
-// username: 'janedoe',
-// password: 's00pers3cret'
-// },
-
-// // `responseType` indicates the type of data that the server will respond with
-// // options are 'arraybuffer', 'blob', 'document', 'json', 'text', 'stream'
-// responseType: 'json', // default
-
-// // `xsrfCookieName` is the name of the cookie to use as a value for xsrf token
-// xsrfCookieName: 'XSRF-TOKEN', // default
-
-// // `xsrfHeaderName` is the name of the http header that carries the xsrf token value
-// xsrfHeaderName: 'X-XSRF-TOKEN', // default
-
-// // `onUploadProgress` allows handling of progress events for uploads
-// onUploadProgress: function (progressEvent) {
-// // Do whatever you want with the native progress event
-// },
-
-// // `onDownloadProgress` allows handling of progress events for downloads
-// onDownloadProgress: function (progressEvent) {
-// // Do whatever you want with the native progress event
-// },
-
-// // `maxContentLength` defines the max size of the http response content allowed
-// maxContentLength: 2000,
-
-// // `validateStatus` defines whether to resolve or reject the promise for a given
-// // HTTP response status code. If `validateStatus` returns `true` (or is set to `null`
-// // or `undefined`), the promise will be resolved; otherwise, the promise will be
-// // rejected.
-// validateStatus: function (status) {
-// return status >= 200 && status < 300; // default
-// },
-
-// // `maxRedirects` defines the maximum number of redirects to follow in node.js.
-// // If set to 0, no redirects will be followed.
-// maxRedirects: 5, // default
-
-// // `httpAgent` and `httpsAgent` define a custom agent to be used when performing http
-// // and https requests, respectively, in node.js. This allows options to be added like
-// // `keepAlive` that are not enabled by default.
-// // httpAgent: new http.Agent({ keepAlive: true }),
-// // httpsAgent: new https.Agent({ keepAlive: true }),
-
-// // 'proxy' defines the hostname and port of the proxy server
-// // Use `false` to disable proxies, ignoring environment variables.
-// // `auth` indicates that HTTP Basic auth should be used to connect to the proxy, and
-// // supplies credentials.
-// // This will set an `Proxy-Authorization` header, overwriting any existing
-// // `Proxy-Authorization` custom headers you have set using `headers`.
-// proxy: {
-// host: '127.0.0.1',
-// port: 9000,
-// auth: {
-//   username: 'mikeymike',
-//   password: 'rapunz3l'
-// }
-// },
-
-// // `cancelToken` specifies a cancel token that can be used to cancel the request
-// // (see Cancellation section below for details)
-// // cancelToken: new CancelToken(function (cancel) {
-// // })
-// };
-
 var httpOption = function httpOption() {
 
 	// `url` is the server URL that will be used for the request
 	this.url = '';
 
-	// `method` is the request method to be used when making the request
-	this.method = 'GET'; // 'GET', 'DELETE', 'POST', 'PUT', 'PATCH', 'HEAD'
-
-	// `baseURL` will be prepended to `url` unless `url` is absolute.
-	// It can be convenient to set `baseURL` for an instance of axios to pass relative URLs
-	// to methods of that instance.
+	// `method` is the request method to be used 
+	// when making the request
+	// GET, DELETE, POST, PUT, PATCH, HEAD
+	this.method = _httpMethod.GET;
 
 	/**
   * the base url
@@ -1231,7 +1110,8 @@ var httpOption = function httpOption() {
   */
 	this.headerFn;
 
-	// `params` are the URL parameters to be sent with the request
+	// `params` are the URL parameters 
+	// to be sent with the request
 	// Must be a plain object or a URLSearchParams object
 	this.params = {};
 };
@@ -1354,7 +1234,16 @@ httpOption.prototype.getUrl = function () {
 
 httpOption.prototype.getData = function () {
 
-	return this.method === 'GET' ? null : this.data;
+	if (this.method === _httpMethod.POST || this.method === _httpMethod.PATCH || this.method === _httpMethod.PUT) {
+
+		if (this.dataType === 'json') {
+			return _utilities2.default.toJSON(this.data);
+		}
+
+		return _utilities2.default.toQueryString(this.data);
+	}
+
+	return null;
 };
 
 httpOption.prototype.getHeaders = function () {
@@ -1386,6 +1275,20 @@ module.exports = httpOption;
 
 /***/ }),
 /* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.GET = 'GET';
+exports.POST = 'POST';
+exports.PUT = 'PUT';
+exports.PATCH = 'PATCH';
+exports.DELETE = 'DELETE';
+exports.HEAD = 'HEAD';
+
+/***/ }),
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

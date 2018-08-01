@@ -11,7 +11,7 @@ import httpHandler from './../helpers/httpHandler';
  * @return {Object}                Request Xhr and promise
  */
 module.exports = function xhrAdapter(config, defaultHandler) {
-	let xmlHttp = xmlHttpRequest(config);
+	const xmlHttp = xmlHttpRequest(config);
 
 	return {
 		'xhr': xmlHttp,
