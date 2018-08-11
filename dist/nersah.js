@@ -461,6 +461,8 @@ function NERSAH() {
 
 	return {
 
+		name: 'nersah',
+
 		/**
    * specify the http request to a tag
    * @param  {String} 	tag name

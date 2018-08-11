@@ -28,13 +28,9 @@
     "url": "https://github.com/shayanypn/nersah"
   },
   "keywords": [
-    "webpack",
-    "es6",
-    "starter",
-    "library",
-    "universal",
-    "umd",
-    "commonjs"
+    "ajax",
+    "nersah",
+    "XMLHttpRequest "
   ],
   "author": "Shayan Yazdanpanah <shayanypn@gmail.com>",
   "license": "MIT",

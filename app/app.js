@@ -1,6 +1,6 @@
 import CORE from './core/core.js';
 
-let myWindow = (typeof window !== 'undefined') ? window : {};
+const myWindow = (typeof window !== 'undefined') ? window : {};
 
 myWindow.nersah = new CORE();
 

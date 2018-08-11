@@ -31,9 +31,17 @@ header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
 
 
 header('Content-Type:application/json');
+$post = file_get_contents('php://input');
 
-$response = array('status' => $_code);
+if ($_SERVER['CONTENT_TYPE'] == 'application/json') {
+	$post = json_decode($post);
+}
 
+$response = array();
+$response['method'] = $_SERVER['REQUEST_METHOD'];
+$response['status'] = $_code;
+$response['post'] = $post;
+$response['get'] = $_GET;
 
 
 
