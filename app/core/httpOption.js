@@ -1,8 +1,7 @@
 'use strict';
 
 import utils from './../utilities';
-import { GET, POST, PATCH, PUT }  from './httpMethod';
-
+import { GET, POST, PATCH, PUT } from './httpMethod';
 
 /**
  * HTTP Option Object
@@ -12,7 +11,7 @@ const httpOption = function () {
 	// `url` is the server URL that will be used for the request
 	this.url = '';
 
-	// `method` is the request method to be used 
+	// `method` is the request method to be used
 	// when making the request
 	// GET, DELETE, POST, PUT, PATCH, HEAD
 	this.method = GET;
@@ -57,7 +56,7 @@ const httpOption = function () {
 	 */
 	this.headerFn;
 
-	// `params` are the URL parameters 
+	// `params` are the URL parameters
 	// to be sent with the request
 	// Must be a plain object or a URLSearchParams object
 	this.params = {};
@@ -141,6 +140,8 @@ httpOption.prototype.getUrl = function () {
 	const _this = this;
 	const queries = [];
 	let url = '';
+	
+	console.log('this.url', this.url);
 
 	if (this.url.split('?').length > 1) {
 
@@ -153,16 +154,18 @@ httpOption.prototype.getUrl = function () {
 		});
 	}
 
-	if (this.url.split('')[0] === '~') {
+	if (this.url.split('')[0] === '~' || this.url.split('')[0] === '/') {
 		url = this.urlBase;
 
 		if (this.urlPrefix && this.urlPrefix !== '') {
-			url += (this.urlPrefix + '/a');
+			url += (this.urlPrefix + '/');
 		}
 
 		url += this.url.slice(1, url.length);
 
 		url += this.urlSuffix;
+	} else {
+		url = this.url;
 	}
 
 	const paramKeys = Object.keys(this.params);
@@ -186,14 +189,14 @@ httpOption.prototype.getUrl = function () {
 
 httpOption.prototype.getData = function () {
 
-	if (this.method === POST
-			|| this.method === PATCH
-			|| this.method === PUT) {
-		
+	if (this.method === POST ||
+		this.method === PATCH ||
+		this.method === PUT) {
+
 		if (this.dataType === 'json') {
-			return utils.toJSON(this.data);	
+			return utils.toJSON(this.data);
 		}
-		
+
 		return utils.toQueryString(this.data);
 	}
 

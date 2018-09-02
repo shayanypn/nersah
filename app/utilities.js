@@ -114,7 +114,6 @@ function toQueryString(data) {
   return query.replace(/&$/, '').replace(/%20/g, '+');
 }
 
-
 function toJSON(data) {
   return JSON.stringify(data);
 }
