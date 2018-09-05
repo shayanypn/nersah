@@ -140,32 +140,34 @@ httpOption.prototype.getUrl = function () {
 	const _this = this;
 	const queries = [];
 	let url = '';
-	
-	console.log('this.url', this.url);
 
 	if (this.url.split('?').length > 1) {
 
 		this.url.split('?').forEach(x=>{
 			const param = x.split('=');
 
-			if (param.length === 2) {
-				queries.push(x);
-			}
+			if (param.length === 2) {queries.push(x);}
 		});
 	}
 
-	if (this.url.split('')[0] === '~' || this.url.split('')[0] === '/') {
-		url = this.urlBase;
-
-		if (this.urlPrefix && this.urlPrefix !== '') {
-			url += (this.urlPrefix + '/');
-		}
-
-		url += this.url.slice(1, url.length);
-
-		url += this.urlSuffix;
-	} else {
+	/**
+	 * Sepecify the URL
+	 */
+	if (this.url.indexOf('http') > -1 || this.url.indexOf('//') > -1) {
 		url = this.url;
+	} else {
+		if (this.url.split('')[0] === '~' || this.url.split('')[0] === '/') {
+			url = this.urlBase;
+
+			if (this.urlPrefix && this.urlPrefix !== '') {
+				url += (this.urlPrefix + '/');
+			}
+
+			url += this.url.slice(1, url.length);
+			url += this.urlSuffix;
+		} else {
+			url = this.url;
+		}
 	}
 
 	const paramKeys = Object.keys(this.params);
@@ -211,9 +213,9 @@ httpOption.prototype.getHeaders = function () {
 	}
 
 	if (typeof this.headers === 'object') {
-		headers = Object.assign(headers, this.headers);
+		headers = Object.assign(headers ? headers : {}, this.headers);
 	} else if (typeof this.headers === 'function') {
-		headers = this.headers(headers);
+		headers = this.headers(headers ? headers : {});
 	}
 
 	if (typeof headers === 'object') {

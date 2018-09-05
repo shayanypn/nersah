@@ -89,41 +89,41 @@ var url = window.location.href.substring(0, window.location.href.lastIndexOf('/'
 /**
  * nersah config
  */
-nersah.setDefault(
-	{
-		urlBase: url+'/',
-		urlPrefix: '',
-		urlSuffix: '',
+// nersah.setDefault(
+// 	{
+// 		urlBase: url+'/',
+// 		urlPrefix: '',
+// 		urlSuffix: '',
 
-		timeout: 3000,
+// 		timeout: 3000,
 
-		dataType: 'json',
+// 		dataType: 'json',
 
-		headers: function(){
-			// if ( TOKEN ) {
-			// 	return {
-			// 		'Authorization': TOKEN,
-			// 		'content-type': 'application/json'
-			// 	};
-			// }else{
-				return {
-					'content-type': 'application/json'
-				};
-			// };
-		}
-	},
-	{
-		200: function(http){
-			print.write('log-simple-get','------ GLOBAL:200 ------');
-		},
-		400: function(http){
-			print.log('GLOBAL::400 ');
-		},
-		500: function(http){
-			print.log('GLOBAL::500 ');
-		}
-	}
-);
+// 		headers: function(){
+// 			// if ( TOKEN ) {
+// 			// 	return {
+// 			// 		'Authorization': TOKEN,
+// 			// 		'content-type': 'application/json'
+// 			// 	};
+// 			// }else{
+// 				return {
+// 					'content-type': 'application/json'
+// 				};
+// 			// };
+// 		}
+// 	},
+// 	{
+// 		200: function(http){
+// 			print.write('log-simple-get','------ GLOBAL:200 ------');
+// 		},
+// 		400: function(http){
+// 			print.log('GLOBAL::400 ');
+// 		},
+// 		500: function(http){
+// 			print.log('GLOBAL::500 ');
+// 		}
+// 	}
+// );
 
 
 
@@ -172,6 +172,10 @@ document.getElementById('btn-simple-post')
 		},
         dataType: 'json',
         contentType: 'application/json',
+        headers: {
+        	'content-type': 'application/json',
+        	'Authorization': '123'
+        }
 	})
 	.then(function(response, httpResponse){
 

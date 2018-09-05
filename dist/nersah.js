@@ -1192,8 +1192,6 @@ httpOption.prototype.getUrl = function () {
 	var queries = [];
 	var url = '';
 
-	console.log('this.url', this.url);
-
 	if (this.url.split('?').length > 1) {
 
 		this.url.split('?').forEach(function (x) {
@@ -1205,18 +1203,24 @@ httpOption.prototype.getUrl = function () {
 		});
 	}
 
-	if (this.url.split('')[0] === '~' || this.url.split('')[0] === '/') {
-		url = this.urlBase;
-
-		if (this.urlPrefix && this.urlPrefix !== '') {
-			url += this.urlPrefix + '/';
-		}
-
-		url += this.url.slice(1, url.length);
-
-		url += this.urlSuffix;
-	} else {
+	/**
+  * Sepecify the URL
+  */
+	if (this.url.indexOf('http') > -1 || this.url.indexOf('//') > -1) {
 		url = this.url;
+	} else {
+		if (this.url.split('')[0] === '~' || this.url.split('')[0] === '/') {
+			url = this.urlBase;
+
+			if (this.urlPrefix && this.urlPrefix !== '') {
+				url += this.urlPrefix + '/';
+			}
+
+			url += this.url.slice(1, url.length);
+			url += this.urlSuffix;
+		} else {
+			url = this.url;
+		}
 	}
 
 	var paramKeys = Object.keys(this.params);
@@ -1260,9 +1264,9 @@ httpOption.prototype.getHeaders = function () {
 	}
 
 	if (_typeof(this.headers) === 'object') {
-		headers = Object.assign(headers, this.headers);
+		headers = Object.assign(headers ? headers : {}, this.headers);
 	} else if (typeof this.headers === 'function') {
-		headers = this.headers(headers);
+		headers = this.headers(headers ? headers : {});
 	}
 
 	if ((typeof headers === 'undefined' ? 'undefined' : _typeof(headers)) === 'object') {
