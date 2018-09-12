@@ -65,6 +65,8 @@ const httpOption = function () {
 
 httpOption.prototype.setDefault = function () {
 
+	console.log(arguments);
+
 	if (typeof arguments['0'] === 'object') {
 		const _this = this,
 		options = arguments['0'],

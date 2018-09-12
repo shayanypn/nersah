@@ -434,7 +434,7 @@ function NERSAH() {
 			defaultConfig['tag'] = nersahTagName;
 		}
 
-		if (useDefault !== false) {
+		if (useDefault) {
 			option.setDefault(defaultConfig);
 		}
 
@@ -1119,6 +1119,8 @@ var httpOption = function httpOption() {
 };
 
 httpOption.prototype.setDefault = function () {
+
+	console.log(arguments);
 
 	if (_typeof(arguments['0']) === 'object') {
 		var _this = this,

@@ -26,7 +26,7 @@ export default function NERSAH() {
 			defaultConfig['tag'] = nersahTagName;
 		}
 
-		if (useDefault !== false) {
+		if (useDefault) {
 			option.setDefault(defaultConfig);
 		}
 
